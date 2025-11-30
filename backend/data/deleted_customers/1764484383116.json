@@ -1,0 +1,33 @@
+[
+  {
+    "id": "1",
+    "internalId": "1764484833877_bkuxof9r9",
+    "name": "tes",
+    "village": "df",
+    "phone": "8878",
+    "takenAmount": 12000,
+    "interest": "2000",
+    "pc": "",
+    "date": "2025-11-30",
+    "weeks": 12,
+    "profileImage": null,
+    "createdAt": "2025-11-30T06:40:33.877Z",
+    "updatedAt": "2025-11-30T06:40:33.877Z",
+    "originalTakenAmount": 12000,
+    "deletedDate": "2025-11-30",
+    "deletedFrom": "dumm",
+    "remainingAtDeletion": 0,
+    "deletionTimestamp": 1764484866925,
+    "originalCustomerId": null,
+    "originalCustomerInternalId": null,
+    "wasRestoredCustomer": false,
+    "restoredFromId": null,
+    "restoredFromInternalId": null,
+    "restoredFromTimestamp": null,
+    "isRestored": true,
+    "restoredAs": "1",
+    "restoredInternalId": "1764484885981_x8z1s6va6",
+    "restoredDate": "2025-11-30T06:41:25.982Z",
+    "isMigrated": true
+  }
+]

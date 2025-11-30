@@ -1,0 +1,50 @@
+[
+  {
+    "id": "1764404661074",
+    "amount": 2968,
+    "date": "2025-11-26",
+    "comment": "Partial payment",
+    "customerName": "Lakshmi Devi",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 1093,
+    "date": "2025-11-13",
+    "comment": "Partial payment",
+    "customerName": "Lakshmi Devi",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 2703,
+    "date": "2025-11-28",
+    "comment": "Weekly payment",
+    "customerName": "Lakshmi Devi",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 1582,
+    "date": "2025-11-07",
+    "comment": "Partial payment",
+    "customerName": "Lakshmi Devi",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 2896,
+    "date": "2025-11-14",
+    "comment": "Weekly payment",
+    "customerName": "Lakshmi Devi",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 2508,
+    "date": "2025-11-25",
+    "comment": "Interest payment",
+    "customerName": "Lakshmi Devi",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  }
+]

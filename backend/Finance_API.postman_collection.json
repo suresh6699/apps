@@ -1,0 +1,353 @@
+{
+  "info": {
+    "name": "Finance Management API",
+    "description": "Complete API collection for Finance Management Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lineId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "day",
+      "value": "2025-01-15",
+      "type": "string"
+    },
+    {
+      "key": "customerId",
+      "value": "C001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"password\": \"password123\",\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Verify Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lines",
+      "item": [
+        {
+          "name": "Get All Lines",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lines",
+              "host": ["{{baseUrl}}"],
+              "path": ["lines"]
+            }
+          }
+        },
+        {
+          "name": "Get Line by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lines/{{lineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lines", "{{lineId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Line",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Line\",\n  \"type\": \"Daily\",\n  \"days\": [\"Mon\", \"Wed\", \"Fri\"],\n  \"amount\": 100000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lines",
+              "host": ["{{baseUrl}}"],
+              "path": ["lines"]
+            }
+          }
+        },
+        {
+          "name": "Update Line",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Line Name\",\n  \"amount\": 150000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lines/{{lineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lines", "{{lineId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Line BF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lines/{{lineId}}/bf",
+              "host": ["{{baseUrl}}"],
+              "path": ["lines", "{{lineId}}", "bf"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Get Customers by Line and Day",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/lines/{{lineId}}/days/{{day}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "lines", "{{lineId}}", "days", "{{day}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"C011\",\n  \"name\": \"New Customer\",\n  \"village\": \"Village Name\",\n  \"phone\": \"1234567890\",\n  \"takenAmount\": 25000,\n  \"interest\": 10,\n  \"pc\": 5,\n  \"date\": \"2025-02-01\",\n  \"weeks\": 12\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers/lines/{{lineId}}/days/{{day}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "lines", "{{lineId}}", "days", "{{day}}"]
+            }
+          }
+        },
+        {
+          "name": "Add Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2500,\n  \"date\": \"2025-02-01\",\n  \"comment\": \"Payment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transactions/customers/{{customerId}}/lines/{{lineId}}/days/{{day}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", "customers", "{{customerId}}", "lines", "{{lineId}}", "days", "{{day}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collections",
+      "item": [
+        {
+          "name": "Get Collections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/collections/lines/{{lineId}}?days={{day}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["collections", "lines", "{{lineId}}"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "{{day}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "Get Accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/lines/{{lineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "lines", "{{lineId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bank Account\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts/lines/{{lineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "lines", "{{lineId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

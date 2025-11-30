@@ -1,0 +1,450 @@
+@import 'react-day-picker/dist/style.css';
+
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+    font-family:
+        source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+/* Stock Market Chart Animation for Header */
+
+/* Candlestick animation */
+@keyframes candlestick-grow {
+    0%, 100% {
+        transform: scaleY(0.6);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scaleY(1);
+        opacity: 0.7;
+    }
+}
+
+/* Stock price line moving across */
+@keyframes stock-line-move {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.6;
+    }
+    90% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateX(200%);
+        opacity: 0;
+    }
+}
+
+/* Grid line fade */
+@keyframes grid-fade {
+    0%, 100% {
+        opacity: 0.1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/* Price ticker dot */
+@keyframes ticker-pulse {
+    0%, 100% {
+        transform: scale(0.8);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+/* Main trading background with gradient */
+.trading-bg {
+    position: relative;
+    background: linear-gradient(135deg, #e0f7fa 0%, #e1f5fe 25%, #e8eaf6 50%, #f3e5f5 75%, #fce4ec 100%);
+    overflow: hidden;
+}
+
+/* Grid lines - horizontal */
+.trading-bg::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            rgba(59, 130, 246, 0.08) 0px,
+            transparent 1px,
+            transparent 20px,
+            rgba(59, 130, 246, 0.08) 21px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            rgba(59, 130, 246, 0.08) 0px,
+            transparent 1px,
+            transparent 50px,
+            rgba(59, 130, 246, 0.08) 51px
+        );
+    animation: grid-fade 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Moving stock price line (bullish trend) */
+.trading-bg::after {
+    content: "";
+    position: absolute;
+    top: 20%;
+    left: -100%;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(to bottom right,
+        transparent 0%,
+        transparent 45%,
+        rgba(16, 185, 129, 0.3) 47%,
+        rgba(16, 185, 129, 0.5) 48.5%,
+        rgba(16, 185, 129, 0.6) 50%,
+        rgba(16, 185, 129, 0.5) 51.5%,
+        rgba(16, 185, 129, 0.3) 53%,
+        transparent 55%,
+        transparent 100%
+    );
+    animation: stock-line-move 12s linear infinite;
+    pointer-events: none;
+}
+
+/* Candlestick chart bars container */
+.trading-bg .chart-bars {
+    position: absolute;
+    bottom: 15%;
+    left: 0;
+    right: 0;
+    height: 70%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-evenly;
+    padding: 0 30px;
+    pointer-events: none;
+    gap: 8px;
+}
+
+/* Individual candlestick bars */
+.trading-bg .chart-bar {
+    position: relative;
+    width: 8px;
+    background: linear-gradient(to top, rgba(239, 68, 68, 0.4), rgba(239, 68, 68, 0.2));
+    border-radius: 2px;
+    animation: candlestick-grow 4s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Green (bullish) candlesticks */
+.trading-bg .chart-bar:nth-child(odd) {
+    background: linear-gradient(to top, rgba(34, 197, 94, 0.5), rgba(34, 197, 94, 0.3));
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+
+/* Candlestick wick (top line) */
+.trading-bg .chart-bar::before {
+    content: "";
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 15px;
+    background: rgba(100, 116, 139, 0.4);
+}
+
+/* Candlestick wick (bottom line) */
+.trading-bg .chart-bar::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 10px;
+    background: rgba(100, 116, 139, 0.4);
+}
+
+/* Different heights and animation delays for candlesticks */
+.trading-bg .chart-bar:nth-child(1) { height: 30%; animation-delay: 0s; }
+.trading-bg .chart-bar:nth-child(2) { height: 50%; animation-delay: 0.4s; }
+.trading-bg .chart-bar:nth-child(3) { height: 40%; animation-delay: 0.8s; }
+.trading-bg .chart-bar:nth-child(4) { height: 55%; animation-delay: 1.2s; }
+.trading-bg .chart-bar:nth-child(5) { height: 35%; animation-delay: 1.6s; }
+.trading-bg .chart-bar:nth-child(6) { height: 60%; animation-delay: 2s; }
+.trading-bg .chart-bar:nth-child(7) { height: 45%; animation-delay: 2.4s; }
+.trading-bg .chart-bar:nth-child(8) { height: 38%; animation-delay: 2.8s; }
+
+/* Price ticker dots/markers */
+.trading-bg .chart-dots {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.trading-bg .chart-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.7) 0%, rgba(59, 130, 246, 0.3) 70%);
+    border-radius: 50%;
+    animation: ticker-pulse 3s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+/* Position ticker dots along a trend line */
+.trading-bg .chart-dot:nth-child(1) { top: 60%; left: 10%; animation-delay: 0s; }
+.trading-bg .chart-dot:nth-child(2) { top: 50%; left: 25%; animation-delay: 0.6s; }
+.trading-bg .chart-dot:nth-child(3) { top: 45%; left: 40%; animation-delay: 1.2s; }
+.trading-bg .chart-dot:nth-child(4) { top: 35%; left: 55%; animation-delay: 1.8s; }
+.trading-bg .chart-dot:nth-child(5) { top: 30%; left: 70%; animation-delay: 2.4s; }
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 0 0% 3.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 3.9%;
+        --primary: 0 0% 9%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 0 0% 96.1%;
+        --secondary-foreground: 0 0% 9%;
+        --muted: 0 0% 96.1%;
+        --muted-foreground: 0 0% 45.1%;
+        --accent: 0 0% 96.1%;
+        --accent-foreground: 0 0% 9%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 89.8%;
+        --input: 0 0% 89.8%;
+        --ring: 0 0% 3.9%;
+        --chart-1: 12 76% 61%;
+        --chart-2: 173 58% 39%;
+        --chart-3: 197 37% 24%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
+        --radius: 0.5rem;
+    }
+    .dark {
+        --background: 0 0% 3.9%;
+        --foreground: 0 0% 98%;
+        --card: 0 0% 3.9%;
+        --card-foreground: 0 0% 98%;
+        --popover: 0 0% 3.9%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        --primary-foreground: 0 0% 9%;
+        --secondary: 0 0% 14.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 0 0% 14.9%;
+        --muted-foreground: 0 0% 63.9%;
+        --accent: 0 0% 14.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 14.9%;
+        --input: 0 0% 14.9%;
+        --ring: 0 0% 83.1%;
+        --chart-1: 220 70% 50%;
+        --chart-2: 160 60% 45%;
+        --chart-3: 30 80% 55%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "kern" 1;
+        text-rendering: optimizeLegibility;
+    }
+    
+    /* Ensure all text elements render properly */
+    button, input, select, textarea, span, p, h1, h2, h3, h4, h5, h6, div {
+        font-feature-settings: "kern" 1;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+@layer base {
+    [data-debug-wrapper="true"] {
+        display: contents !important;
+    }
+
+    [data-debug-wrapper="true"] > * {
+        margin-left: inherit;
+        margin-right: inherit;
+        margin-top: inherit;
+        margin-bottom: inherit;
+        padding-left: inherit;
+        padding-right: inherit;
+        padding-top: inherit;
+        padding-bottom: inherit;
+        column-gap: inherit;
+        row-gap: inherit;
+        gap: inherit;
+        border-left-width: inherit;
+        border-right-width: inherit;
+        border-top-width: inherit;
+        border-bottom-width: inherit;
+        border-left-style: inherit;
+        border-right-style: inherit;
+        border-top-style: inherit;
+        border-bottom-style: inherit;
+        border-left-color: inherit;
+        border-right-color: inherit;
+        border-top-color: inherit;
+        border-bottom-color: inherit;
+    }
+}
+
+/* Money-themed Loading Animations */
+@keyframes progress {
+    0% {
+        transform: scaleX(0);
+    }
+    50% {
+        transform: scaleX(0.7);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes float-money {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.15;
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.25;
+    }
+}
+
+/* Icon Animations for Entry Details */
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes ping-slow {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-progress {
+    animation: progress 2s ease-in-out infinite;
+}
+
+.animate-float-money {
+    animation: float-money 4s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 2s ease-in-out infinite;
+}
+
+.animate-ping-slow {
+    animation: ping-slow 2s ease-in-out infinite;
+}
+
+/* Custom Scrollbar Styles for Sidebar */
+.sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 10px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+}
+
+/* Dark mode scrollbar */
+.dark .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.5);
+}
+
+.dark .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(71, 85, 105, 0.7);
+}
+
+/* Firefox scrollbar */
+.sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+.dark .sidebar-scroll {
+    scrollbar-color: rgba(71, 85, 105, 0.5) transparent;
+}
+

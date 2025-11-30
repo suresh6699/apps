@@ -1,0 +1,39 @@
+[
+  {
+    "id": "1",
+    "name": "Main Line",
+    "type": "Daily",
+    "days": [
+      "Monday",
+      "Tuesday"
+    ],
+    "amount": 50000,
+    "currentBF": 50000,
+    "createdAt": "2025-11-29T08:24:21.072Z",
+    "updatedAt": "2025-11-29T08:24:21.072Z"
+  },
+  {
+    "id": "1764405739103",
+    "name": "test",
+    "type": "Daily",
+    "days": [
+      "Sun"
+    ],
+    "amount": 50000,
+    "currentBF": 55000,
+    "createdAt": "2025-11-29T08:42:19.103Z",
+    "updatedAt": "2025-11-29T08:42:19.103Z"
+  },
+  {
+    "id": "1764484383116",
+    "name": "test",
+    "type": "Daily",
+    "days": [
+      "Sun"
+    ],
+    "amount": 50000,
+    "currentBF": 52000,
+    "createdAt": "2025-11-30T06:33:03.116Z",
+    "updatedAt": "2025-11-30T06:33:03.116Z"
+  }
+]

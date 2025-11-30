@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1764404661073",
+    "amount": 1097,
+    "date": "2025-11-02",
+    "comment": "Weekly payment",
+    "customerName": "Priya Sharma",
+    "createdAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "1764404661073",
+    "amount": 1800,
+    "date": "2025-11-08",
+    "comment": "Interest payment",
+    "customerName": "Priya Sharma",
+    "createdAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "1764404661073",
+    "amount": 1425,
+    "date": "2025-11-28",
+    "comment": "Weekly payment",
+    "customerName": "Priya Sharma",
+    "createdAt": "2025-11-29T08:24:21.073Z"
+  }
+]

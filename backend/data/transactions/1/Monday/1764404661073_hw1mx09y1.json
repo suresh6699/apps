@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1764404661073",
+    "amount": 2790,
+    "date": "2025-11-16",
+    "comment": "Interest payment",
+    "customerName": "Rajesh Kumar",
+    "createdAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "1764404661073",
+    "amount": 2801,
+    "date": "2025-11-15",
+    "comment": "Weekly payment",
+    "customerName": "Rajesh Kumar",
+    "createdAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "1764404661073",
+    "amount": 2840,
+    "date": "2025-11-19",
+    "comment": "Weekly payment",
+    "customerName": "Rajesh Kumar",
+    "createdAt": "2025-11-29T08:24:21.073Z"
+  }
+]

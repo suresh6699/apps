@@ -1,0 +1,21 @@
+[
+  {
+    "id": "1",
+    "internalId": "1764484885981_x8z1s6va6",
+    "name": "tes",
+    "village": "df",
+    "phone": "8878",
+    "takenAmount": 5000,
+    "interest": "1000",
+    "pc": "",
+    "date": "2025-11-30",
+    "weeks": 12,
+    "profileImage": null,
+    "createdAt": "2025-11-30T06:41:25.981Z",
+    "updatedAt": "2025-11-30T06:41:25.981Z",
+    "isRestoredCustomer": true,
+    "restoredFromId": "1",
+    "restoredFromInternalId": "1764484833877_bkuxof9r9",
+    "restoredFromTimestamp": 1764484866925
+  }
+]

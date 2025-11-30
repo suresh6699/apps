@@ -1,0 +1,68 @@
+appId: com.financeapp.desktop
+productName: Finance Manager
+copyright: Copyright © 2025 Finance Manager
+forceCodeSigning: false
+publish: null
+
+directories:
+  output: dist
+  buildResources: electron
+
+# ✅ FIXED: Only include electron and frontend/build in asar
+# Backend goes to extraResources to avoid asar issues
+files:
+  - electron/**/*
+  - frontend/build/**/*
+  - "!backend/**/*"
+  - "!**/*.md"
+  - "!**/*.map"
+  - "!**/.DS_Store"
+  - package.json
+
+# ✅ CRITICAL FIX: Put entire backend folder in extraResources
+# This ensures backend files are always accessible outside asar
+extraResources:
+  - from: backend
+    to: backend
+    filter:
+      - "**/*"
+      - ".env"
+      - "!data/*.json"
+      - "!node_modules"
+  - from: backend/node_modules
+    to: backend/node_modules
+    filter:
+      - "**/*"
+
+# No need for asarUnpack since backend is in extraResources
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: electron/icon.ico
+  artifactName: "FinanceManager-Setup-${version}.${ext}"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "Finance Manager"
+  perMachine: false
+  deleteAppDataOnUninstall: false
+
+mac:
+  target: dmg
+  icon: electron/icon.icns
+  category: public.app-category.finance
+  artifactName: "FinanceManager-${version}.${ext}"
+
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: electron/icon.png
+  category: Office
+  artifactName: "FinanceManager-${version}.${ext}"

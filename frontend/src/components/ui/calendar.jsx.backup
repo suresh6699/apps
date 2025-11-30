@@ -1,0 +1,147 @@
+import * as React from "react"
+import { DayPicker } from "react-day-picker"
+import { cn } from "../../lib/utils"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
+
+function Calendar({
+  className,
+  classNames,
+  showOutsideDays = true,
+  highlightedDates = [],
+  ...props
+}) {
+  const [month, setMonth] = React.useState(props.selected || new Date())
+
+  // Generate years array (from 10 years ago to 5 years in the future)
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: 16 }, (_, i) => currentYear - 10 + i)
+  
+  // Month names
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ]
+
+  const handleMonthChange = (newMonth) => {
+    setMonth(new Date(month.getFullYear(), parseInt(newMonth), 1))
+  }
+
+  const handleYearChange = (newYear) => {
+    setMonth(new Date(parseInt(newYear), month.getMonth(), 1))
+  }
+
+  const handlePreviousMonth = () => {
+    setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
+  }
+
+  const handleNextMonth = () => {
+    setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
+  }
+
+  React.useEffect(() => {
+    if (props.selected) {
+      setMonth(props.selected)
+    }
+  }, [props.selected])
+
+  return (
+    <div className="p-3">
+      {/* Custom Header with Month and Year Dropdowns */}
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <button
+          onClick={handlePreviousMonth}
+          className="h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        
+        <div className="flex items-center gap-2">
+          <Select value={month.getMonth().toString()} onValueChange={handleMonthChange}>
+            <SelectTrigger className="h-9 border-slate-300 dark:border-slate-600 focus:ring-1 focus:ring-blue-500 text-base font-medium min-w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              {months.map((monthName, index) => (
+                <SelectItem key={index} value={index.toString()}>
+                  {monthName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={month.getFullYear().toString()} onValueChange={handleYearChange}>
+            <SelectTrigger className="h-9 border-slate-300 dark:border-slate-600 focus:ring-1 focus:ring-blue-500 text-base font-medium min-w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <button
+          onClick={handleNextMonth}
+          className="h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      <DayPicker
+        month={month}
+        onMonthChange={setMonth}
+        showOutsideDays={showOutsideDays}
+        className={cn("", className)}
+        classNames={{
+          months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+          month: "space-y-3",
+          caption: "hidden", // Hide default caption since we're using custom header
+          caption_label: "text-sm font-medium",
+          nav: "hidden", // Hide default navigation since we're using custom buttons
+          nav_button: "hidden",
+          nav_button_previous: "hidden",
+          nav_button_next: "hidden",
+          table: "w-full border-collapse",
+          head_row: "flex w-full mb-1",
+          head_cell: "text-slate-500 dark:text-slate-400 w-10 font-medium text-sm flex items-center justify-center",
+          row: "flex w-full mt-0.5",
+          cell: cn(
+            "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 w-10 h-10",
+            props.mode === "range"
+              ? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
+              : "[&:has([aria-selected])]:rounded-md"
+          ),
+          day: cn(
+            "h-10 w-10 p-0 font-normal text-base aria-selected:opacity-100 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-700 dark:hover:text-slate-100 rounded-md inline-flex items-center justify-center transition-colors"
+          ),
+          day_range_start: "day-range-start",
+          day_range_end: "day-range-end",
+          day_selected:
+            "!bg-slate-900 !text-white hover:!bg-slate-800 hover:!text-white focus:!bg-slate-900 focus:!text-white !font-semibold dark:!bg-blue-500 dark:hover:!bg-blue-600 !rounded-xl",
+          day_today: "!bg-blue-600 !text-white font-semibold !rounded-full dark:!bg-blue-500",
+          day_outside: "text-slate-300 dark:text-slate-600 opacity-40",
+          day_disabled: "text-slate-400 dark:text-slate-600 opacity-50",
+          day_range_middle:
+            "aria-selected:bg-blue-100 aria-selected:text-slate-900 dark:aria-selected:bg-blue-900 dark:aria-selected:text-slate-100",
+          day_hidden: "invisible",
+          ...classNames,
+        }}
+        modifiers={{
+          highlighted: highlightedDates,
+        }}
+        modifiersClassNames={{
+          highlighted: "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-emerald-500 after:rounded-full font-semibold",
+        }}
+        {...props}
+      />
+    </div>
+  )
+}
+Calendar.displayName = "Calendar"
+
+export { Calendar }
