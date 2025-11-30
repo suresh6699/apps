@@ -741,6 +741,246 @@ class CustomerController {
       next(error);
     }
   }
+
+  /**
+   * Get all pending customers across all days for a line
+   */
+  async getPendingCustomers(req, res, next) {
+    try {
+      const { lineId } = req.params;
+      
+      const days = fileManager.readJSON(`days/${lineId}.json`) || [];
+      let allPendingCustomers = [];
+      
+      days.forEach(day => {
+        const customers = fileManager.readJSON(`customers/${lineId}/${day}.json`) || [];
+        
+        customers.forEach(customer => {
+          const internalId = customer.internalId || customer.id;
+          const transactions = fileManager.readJSON(`transactions/${lineId}/${day}/${internalId}.json`) || [];
+          const chatTransactions = fileManager.readJSON(`chat/${lineId}/${day}/${internalId}.json`) || [];
+          const renewals = fileManager.readJSON(`renewals/${lineId}/${day}/${internalId}.json`) || [];
+          
+          let totalOwed;
+          let latestRenewalDate = null;
+          
+          if (renewals.length > 0) {
+            const sortedRenewals = renewals.sort((a, b) => {
+              const dateA = new Date(a.renewalDate || a.date).getTime();
+              const dateB = new Date(b.renewalDate || b.date).getTime();
+              return dateB - dateA;
+            });
+            totalOwed = parseFloat(sortedRenewals[0].takenAmount) || 0;
+            latestRenewalDate = new Date(sortedRenewals[0].renewalDate || sortedRenewals[0].date).getTime();
+          } else {
+            totalOwed = parseFloat(customer.takenAmount) || 0;
+          }
+          
+          const allPayments = [...transactions, ...chatTransactions];
+          const totalPaid = allPayments.reduce((sum, payment) => {
+            const paymentDate = new Date(payment.createdAt || payment.date).getTime();
+            if (latestRenewalDate && paymentDate < latestRenewalDate) {
+              return sum;
+            }
+            return sum + (parseFloat(payment.amount) || 0);
+          }, 0);
+          
+          const remainingAmount = totalOwed - totalPaid;
+          
+          if (remainingAmount > 0) {
+            allPendingCustomers.push({
+              ...customer,
+              day,
+              remainingAmount,
+              totalOwed,
+              totalPaid
+            });
+          }
+        });
+      });
+      
+      res.json({ customers: allPendingCustomers });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get all deleted customers for a line
+   */
+  async getDeletedCustomers(req, res, next) {
+    try {
+      const { lineId } = req.params;
+      
+      const deletedCustomers = fileManager.readJSON(`deleted_customers/${lineId}.json`) || [];
+      
+      res.json({ customers: deletedCustomers });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get next available customer ID for a line/day
+   */
+  async getNextCustomerId(req, res, next) {
+    try {
+      const { lineId, day } = req.params;
+      
+      const customers = fileManager.readJSON(`customers/${lineId}/${day}.json`) || [];
+      
+      let maxId = 0;
+      customers.forEach(c => {
+        const numericId = parseInt(c.id);
+        if (!isNaN(numericId) && numericId > maxId) {
+          maxId = numericId;
+        }
+      });
+      
+      const nextId = (maxId + 1).toString();
+      
+      res.json({ nextId });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get deleted customer transactions
+   */
+  async getDeletedCustomerTransactions(req, res, next) {
+    try {
+      const { id, lineId } = req.params;
+      const { timestamp, day } = req.query;
+      
+      const deletedCustomers = fileManager.readJSON(`deleted_customers/${lineId}.json`) || [];
+      const deletedCustomer = deletedCustomers.find(
+        dc => dc.id === id && 
+              dc.deletionTimestamp === parseInt(timestamp) &&
+              dc.deletedFrom === day
+      );
+      
+      if (!deletedCustomer) {
+        return res.status(404).json({ error: 'Deleted customer not found' });
+      }
+      
+      const internalId = deletedCustomer.internalId || deletedCustomer.id;
+      
+      const transactions = fileManager.readJSON(
+        `transactions_deleted/${lineId}/${day}/${internalId}_${timestamp}.json`
+      ) || [];
+      
+      res.json({ transactions });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get deleted customer chat
+   */
+  async getDeletedCustomerChat(req, res, next) {
+    try {
+      const { id, lineId } = req.params;
+      const { timestamp, day } = req.query;
+      
+      const deletedCustomers = fileManager.readJSON(`deleted_customers/${lineId}.json`) || [];
+      const deletedCustomer = deletedCustomers.find(
+        dc => dc.id === id && 
+              dc.deletionTimestamp === parseInt(timestamp) &&
+              dc.deletedFrom === day
+      );
+      
+      if (!deletedCustomer) {
+        return res.status(404).json({ error: 'Deleted customer not found' });
+      }
+      
+      const internalId = deletedCustomer.internalId || deletedCustomer.id;
+      
+      const chat = fileManager.readJSON(
+        `chat_deleted/${lineId}/${day}/${internalId}_${timestamp}.json`
+      ) || [];
+      
+      const transactions = fileManager.readJSON(
+        `transactions_deleted/${lineId}/${day}/${internalId}_${timestamp}.json`
+      ) || [];
+      
+      const renewals = fileManager.readJSON(
+        `renewals_deleted/${lineId}/${day}/${internalId}_${timestamp}.json`
+      ) || [];
+      
+      res.json({ 
+        chat,
+        transactions,
+        renewals,
+        customer: deletedCustomer
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get deleted customer renewals
+   */
+  async getDeletedCustomerRenewals(req, res, next) {
+    try {
+      const { id, lineId } = req.params;
+      const { timestamp, day } = req.query;
+      
+      const deletedCustomers = fileManager.readJSON(`deleted_customers/${lineId}.json`) || [];
+      const deletedCustomer = deletedCustomers.find(
+        dc => dc.id === id && 
+              dc.deletionTimestamp === parseInt(timestamp) &&
+              dc.deletedFrom === day
+      );
+      
+      if (!deletedCustomer) {
+        return res.status(404).json({ error: 'Deleted customer not found' });
+      }
+      
+      const internalId = deletedCustomer.internalId || deletedCustomer.id;
+      
+      const renewals = fileManager.readJSON(
+        `renewals_deleted/${lineId}/${day}/${internalId}_${timestamp}.json`
+      ) || [];
+      
+      res.json({ renewals });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get customer print data
+   */
+  async getCustomerPrintData(req, res, next) {
+    try {
+      const { id, lineId, day } = req.params;
+      
+      const customers = fileManager.readJSON(`customers/${lineId}/${day}.json`) || [];
+      const customer = customers.find(c => c.id === id);
+      
+      if (!customer) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+      
+      const internalId = customer.internalId || customer.id;
+      
+      const transactions = fileManager.readJSON(`transactions/${lineId}/${day}/${internalId}.json`) || [];
+      const chatTransactions = fileManager.readJSON(`chat/${lineId}/${day}/${internalId}.json`) || [];
+      const renewals = fileManager.readJSON(`renewals/${lineId}/${day}/${internalId}.json`) || [];
+      
+      res.json({
+        customer,
+        transactions,
+        chatTransactions,
+        renewals
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new CustomerController();
