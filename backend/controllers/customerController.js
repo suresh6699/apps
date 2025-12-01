@@ -447,10 +447,10 @@ class CustomerController {
       const renewals = fileManager.readJSON(`renewals/${lineId}/${day}/${internalId}.json`) || [];
       
       // Write COPIES to archived locations (for deleted customer viewing)
-      // CRITICAL: Use correct path format WITHOUT timestamp suffix in filename
-      fileManager.writeJSON(`deleted_transactions/${lineId}/${day}/${internalId}.json`, transactions);
-      fileManager.writeJSON(`deleted_chat/${lineId}/${day}/${internalId}.json`, chat);
-      fileManager.writeJSON(`deleted_renewals/${lineId}/${day}/${internalId}.json`, renewals);
+      // STEP 8 FIX: Use correct folder names (suffix pattern: *_deleted, not prefix: deleted_*)
+      fileManager.writeJSON(`transactions_deleted/${lineId}/${day}/${internalId}.json`, transactions);
+      fileManager.writeJSON(`chat_deleted/${lineId}/${day}/${internalId}.json`, chat);
+      fileManager.writeJSON(`renewals_deleted/${lineId}/${day}/${internalId}.json`, renewals);
       
       // STEP 8 FIX: DO NOT delete original files
       // Original files stay in place, so BF calculation continues to count them
