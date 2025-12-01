@@ -54,6 +54,15 @@ async function runTest() {
   console.log('='.repeat(70) + '\n');
 
   try {
+    // Login first
+    console.log('Logging in...');
+    const loginResponse = await makeRequest('POST', '/auth/login', {
+      username: 'admin',
+      password: 'admin123'
+    });
+    AUTH_TOKEN = loginResponse.data.token;
+    console.log('✅ Logged in successfully\n');
+    
     // Use existing line "sad" with id "1764602063844"
     const lineId = '1764602063844';
     const day = 'Sun';
