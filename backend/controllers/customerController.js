@@ -1323,10 +1323,10 @@ class CustomerController {
       
       const deletedInternalId = deletedCustomer.internalId || deletedCustomer.id;
       
-      // STEP 8 FIX: Simple load from archived files (NO timestamp suffix)
-      const chat = fileManager.readJSON(`deleted_chat/${lineId}/${day}/${deletedInternalId}.json`) || [];
-      const transactions = fileManager.readJSON(`deleted_transactions/${lineId}/${day}/${deletedInternalId}.json`) || [];
-      const renewals = fileManager.readJSON(`deleted_renewals/${lineId}/${day}/${deletedInternalId}.json`) || [];
+      // STEP 8 FIX: Load from archived files using correct folder names (suffix pattern)
+      const chat = fileManager.readJSON(`chat_deleted/${lineId}/${day}/${deletedInternalId}.json`) || [];
+      const transactions = fileManager.readJSON(`transactions_deleted/${lineId}/${day}/${deletedInternalId}.json`) || [];
+      const renewals = fileManager.readJSON(`renewals_deleted/${lineId}/${day}/${deletedInternalId}.json`) || [];
       
       console.log(`✅ STEP 8: Loaded ${transactions.length} transactions, ${chat.length} chat, ${renewals.length} renewals`);
       
