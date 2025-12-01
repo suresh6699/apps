@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1764598895854",
+    "amount": 5000,
+    "date": "2025-12-01",
+    "comment": "",
+    "customerName": "sdfsd",
+    "createdAt": "2025-12-01T14:21:35.854Z"
+  },
+  {
+    "id": "1764598935393",
+    "amount": 12000,
+    "date": "2025-12-01",
+    "comment": "Restored customer - New loan of ₹12000",
+    "customerName": "",
+    "createdAt": "2025-12-01T14:22:15.393Z",
+    "type": "restored",
+    "loanType": "restoredLoan",
+    "isRestoredLoan": true,
+    "restoredAt": 1764598935393
+  }
+]

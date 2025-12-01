@@ -1,0 +1,34 @@
+[
+  {
+    "id": "1",
+    "internalId": "1764587837080_88g9aemat",
+    "name": "dfd",
+    "village": "rer",
+    "phone": "656",
+    "profileImage": null,
+    "takenAmount": 5000,
+    "interest": 1000,
+    "pc": null,
+    "date": "2025-12-01",
+    "weeks": "12",
+    "isRestoredCustomer": true,
+    "restoredAt": 1764589970645,
+    "restoredFrom": "sasd"
+  },
+  {
+    "id": "2",
+    "internalId": "1764592257714_seyawyiba",
+    "name": "dsfsd",
+    "village": "dfsf",
+    "phone": "3333423",
+    "profileImage": null,
+    "takenAmount": 5000,
+    "interest": 1000,
+    "pc": null,
+    "date": "2025-12-01",
+    "weeks": "12",
+    "isRestoredCustomer": true,
+    "restoredAt": 1764592291749,
+    "restoredFrom": "sasd"
+  }
+]

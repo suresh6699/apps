@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "internalId": "1764602084949_3us989oou",
+    "name": "dfsd",
+    "village": "dsf",
+    "phone": "43243",
+    "takenAmount": 12000,
+    "interest": "2000",
+    "pc": "",
+    "date": "2025-12-01",
+    "weeks": 12,
+    "profileImage": null,
+    "createdAt": "2025-12-01T15:14:44.950Z",
+    "updatedAt": "2025-12-01T15:14:44.950Z",
+    "isDeleted": true,
+    "deletedAt": 1764602104256,
+    "deletedFrom": "monday"
+  }
+]

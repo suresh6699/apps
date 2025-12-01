@@ -1,0 +1,47 @@
+[
+  {
+    "id": "C1201",
+    "internalId": "1764404661073_o7lpwsnmv",
+    "name": "Lakshmi Devi",
+    "village": "Ramapuram",
+    "phone": "9876543213",
+    "takenAmount": 26343,
+    "interest": 14,
+    "pc": 159,
+    "date": "2025-10-07",
+    "weeks": 12,
+    "profileImage": null,
+    "createdAt": "2025-11-29T08:24:21.073Z",
+    "updatedAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "C1202",
+    "internalId": "1764404661073_2pkhsy83d",
+    "name": "Suresh Babu",
+    "village": "Venkateswarapuram",
+    "phone": "9876543214",
+    "takenAmount": 45294,
+    "interest": 6,
+    "pc": 327,
+    "date": "2025-10-20",
+    "weeks": 16,
+    "profileImage": null,
+    "createdAt": "2025-11-29T08:24:21.073Z",
+    "updatedAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "C1203",
+    "internalId": "1764404661073_7a72yqby9",
+    "name": "Kavitha Rao",
+    "village": "Krishnapuram",
+    "phone": "9876543215",
+    "takenAmount": 14662,
+    "interest": 13,
+    "pc": 138,
+    "date": "2025-11-12",
+    "weeks": 24,
+    "profileImage": null,
+    "createdAt": "2025-11-29T08:24:21.073Z",
+    "updatedAt": "2025-11-29T08:24:21.073Z"
+  }
+]

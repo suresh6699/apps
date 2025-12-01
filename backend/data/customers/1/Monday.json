@@ -1,0 +1,47 @@
+[
+  {
+    "id": "C1101",
+    "internalId": "1764404661073_hw1mx09y1",
+    "name": "Rajesh Kumar",
+    "village": "Ramapuram",
+    "phone": "9876543210",
+    "takenAmount": 45767,
+    "interest": 12,
+    "pc": 447,
+    "date": "2025-10-06",
+    "weeks": 24,
+    "profileImage": null,
+    "createdAt": "2025-11-29T08:24:21.073Z",
+    "updatedAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "C1102",
+    "internalId": "1764404661073_gdlv72azw",
+    "name": "Priya Sharma",
+    "village": "Krishnapuram",
+    "phone": "9876543211",
+    "takenAmount": 48749,
+    "interest": 9,
+    "pc": 217,
+    "date": "2025-11-20",
+    "weeks": 20,
+    "profileImage": null,
+    "createdAt": "2025-11-29T08:24:21.073Z",
+    "updatedAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "C1103",
+    "internalId": "1764404661073_vq8qdjxxg",
+    "name": "Anil Reddy",
+    "village": "Lakshmipur",
+    "phone": "9876543212",
+    "takenAmount": 37694,
+    "interest": 8,
+    "pc": 355,
+    "date": "2025-10-09",
+    "weeks": 20,
+    "profileImage": null,
+    "createdAt": "2025-11-29T08:24:21.073Z",
+    "updatedAt": "2025-11-29T08:24:21.073Z"
+  }
+]

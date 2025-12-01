@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#4f46e5" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#bgGradient)" filter="url(#shadow)"/>
+  
+  <!-- Inner Circle Border -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="white" stroke-width="4" opacity="0.3"/>
+  
+  <!-- Finance Chart Icon -->
+  <g transform="translate(256, 256) scale(8)">
+    <!-- Axes -->
+    <path d="M-20 -20 v36 h36" stroke="url(#iconGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    
+    <!-- Bars -->
+    <!-- Tallest bar (right) -->
+    <rect x="10" y="-8" width="8" height="24" fill="url(#iconGradient)" rx="1.5"/>
+    
+    <!-- Medium bar (middle) -->
+    <rect x="-1" y="4" width="8" height="12" fill="url(#iconGradient)" rx="1.5"/>
+    
+    <!-- Short bar (left) -->
+    <rect x="-12" y="10" width="8" height="6" fill="url(#iconGradient)" rx="1.5"/>
+  </g>
+  
+  <!-- Shine Effect -->
+  <path d="M 100 100 Q 200 150 300 100" stroke="white" stroke-width="3" opacity="0.15" fill="none"/>
+  <path d="M 150 120 Q 230 160 310 120" stroke="white" stroke-width="2" opacity="0.1" fill="none"/>
+</svg>

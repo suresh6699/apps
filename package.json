@@ -1,0 +1,33 @@
+{
+  "name": "finance-app-desktop",
+  "version": "1.0.0",
+  "description": "Finance Management Desktop Application",
+  "main": "electron/main.js",
+  "author": "Finance App",
+  "license": "ISC",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"wait-on http://localhost:3000 && npm run start:electron\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && set BROWSER=none && npm start",
+    "start:electron": "electron .",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "prebuild": "cd backend && npm install --production",
+    "package": "npm run build && electron-builder",
+    "package:win": "npm run build && electron-builder --win",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:linux": "npm run build && electron-builder --linux",
+    "package:dir": "npm run build && electron-builder --dir"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "electron-is-dev": "^2.0.0"
+  },
+  "devDependencies": {
+    "bcryptjs": "^2.4.3",
+    "concurrently": "^8.2.2",
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1",
+    "wait-on": "^7.2.0"
+  }
+}

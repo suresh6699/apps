@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLog Finance - Icon Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+            padding: 40px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .icon-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .icon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+        }
+        
+        .icon-wrapper {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        canvas {
+            display: block;
+            border-radius: 10px;
+        }
+        
+        .size-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #a78bfa;
+            margin-bottom: 15px;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        }
+        
+        .download-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .instructions {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 40px;
+        }
+        
+        .instructions h2 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+        }
+        
+        .instructions ul {
+            list-style-position: inside;
+            line-height: 1.8;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .download-all-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: block;
+            margin: 40px auto;
+            transition: all 0.3s ease;
+        }
+        
+        .download-all-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 SmartLog Finance - Icon Generator</h1>
+        
+        <button class="download-all-btn" onclick="downloadAll()">⬇️ Download All Icons (ZIP)</button>
+        
+        <div class="grid" id="iconGrid"></div>
+        
+        <div class="instructions">
+            <h2>📋 Instructions for Electron</h2>
+            <ul>
+                <li><strong>Windows:</strong> Use icon.ico (256x256) - Place in /electron folder</li>
+                <li><strong>macOS:</strong> Use icon.icns or PNG files - Place in /electron folder</li>
+                <li><strong>Linux:</strong> Use PNG files (512x512 recommended) - Place in /electron folder</li>
+                <li><strong>Electron Builder:</strong> Update electron-builder.yml with icon paths</li>
+                <li>Click individual download buttons to save each size separately</li>
+                <li>Or click "Download All Icons" to get a complete package</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const sizes = [16, 32, 64, 128, 256, 512, 1024];
+        
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            
+            const center = size / 2;
+            const radius = size * 0.47;
+            
+            // Background gradient circle
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#2563eb');
+            gradient.addColorStop(0.5, '#4f46e5');
+            gradient.addColorStop(1, '#7c3aed');
+            
+            // Shadow
+            ctx.shadowColor = 'rgba(79, 70, 229, 0.5)';
+            ctx.shadowBlur = size * 0.05;
+            ctx.shadowOffsetY = size * 0.02;
+            
+            // Draw circle
+            ctx.beginPath();
+            ctx.arc(center, center, radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Reset shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Inner border
+            ctx.beginPath();
+            ctx.arc(center, center, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = size * 0.008;
+            ctx.stroke();
+            
+            // Icon gradient
+            const iconGradient = ctx.createLinearGradient(0, 0, size, size);
+            iconGradient.addColorStop(0, '#ffffff');
+            iconGradient.addColorStop(1, '#e0e7ff');
+            
+            // Scale for icon
+            const scale = size / 64;
+            ctx.strokeStyle = iconGradient;
+            ctx.fillStyle = iconGradient;
+            ctx.lineWidth = 2.5 * scale;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Draw axes
+            ctx.beginPath();
+            ctx.moveTo(center - 20 * scale, center - 20 * scale);
+            ctx.lineTo(center - 20 * scale, center + 16 * scale);
+            ctx.lineTo(center + 16 * scale, center + 16 * scale);
+            ctx.stroke();
+            
+            // Draw bars with rounded corners
+            const drawRoundedRect = (x, y, width, height, radius) => {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.arcTo(x + width, y, x + width, y + radius, radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+                ctx.lineTo(x + radius, y + height);
+                ctx.arcTo(x, y + height, x, y + height - radius, radius);
+                ctx.lineTo(x, y + radius);
+                ctx.arcTo(x, y, x + radius, y, radius);
+                ctx.closePath();
+                ctx.fill();
+            };
+            
+            const barRadius = 1.5 * scale;
+            
+            // Tallest bar (right)
+            drawRoundedRect(
+                center + 10 * scale,
+                center - 8 * scale,
+                8 * scale,
+                24 * scale,
+                barRadius
+            );
+            
+            // Medium bar (middle)
+            drawRoundedRect(
+                center - 1 * scale,
+                center + 4 * scale,
+                8 * scale,
+                12 * scale,
+                barRadius
+            );
+            
+            // Short bar (left)
+            drawRoundedRect(
+                center - 12 * scale,
+                center + 10 * scale,
+                8 * scale,
+                6 * scale,
+                barRadius
+            );
+            
+            // Shine effect
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 3 * scale;
+            ctx.beginPath();
+            ctx.moveTo(size * 0.2, size * 0.2);
+            ctx.quadraticCurveTo(size * 0.4, size * 0.3, size * 0.6, size * 0.2);
+            ctx.stroke();
+        }
+        
+        function downloadImage(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        function downloadAll() {
+            alert('Downloading all icons individually. Check your downloads folder!');
+            sizes.forEach(size => {
+                const canvas = document.getElementById(`canvas-${size}`);
+                downloadImage(canvas, `smartlog-icon-${size}x${size}.png`);
+            });
+        }
+        
+        // Generate all icon sizes
+        const grid = document.getElementById('iconGrid');
+        sizes.forEach(size => {
+            const card = document.createElement('div');
+            card.className = 'icon-card';
+            
+            const label = document.createElement('div');
+            label.className = 'size-label';
+            label.textContent = `${size}x${size}`;
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'icon-wrapper';
+            
+            const canvas = document.createElement('canvas');
+            canvas.id = `canvas-${size}`;
+            canvas.style.width = '150px';
+            canvas.style.height = '150px';
+            
+            const button = document.createElement('button');
+            button.className = 'download-btn';
+            button.textContent = `Download ${size}x${size}`;
+            button.onclick = () => downloadImage(canvas, `smartlog-icon-${size}x${size}.png`);
+            
+            wrapper.appendChild(canvas);
+            card.appendChild(label);
+            card.appendChild(wrapper);
+            card.appendChild(button);
+            grid.appendChild(card);
+            
+            drawIcon(canvas, size);
+        });
+    </script>
+</body>
+</html>

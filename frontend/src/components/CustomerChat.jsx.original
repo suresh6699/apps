@@ -1,0 +1,671 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Textarea } from './ui/textarea';
+import { ArrowLeft, User, Send, FileText, IndianRupee, RefreshCw } from 'lucide-react';
+import { useTheme } from '../App';
+
+const CustomerChat = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const customerId = searchParams.get('id');
+  const day = searchParams.get('day');
+  const lineId = searchParams.get('lineId');
+  const isDeletedParam = searchParams.get('deleted') === 'true';
+  const deletionTimestamp = searchParams.get('timestamp');
+  const { theme } = useTheme();
+
+  const [customer, setCustomer] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [amount, setAmount] = useState('');
+  const [comment, setComment] = useState('');
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const [renewals, setRenewals] = useState([]);
+
+  useEffect(() => {
+    // Load customer - Check URL parameter first to determine if it's a deleted customer
+    let foundCustomer = null;
+    let isDeletedCustomer = false;
+    
+    // If URL explicitly says it's a deleted customer, look there FIRST
+    if (isDeletedParam) {
+      const deletedKey = `deleted_customers_${lineId}`;
+      const storedDeleted = localStorage.getItem(deletedKey);
+      if (storedDeleted) {
+        const deletedCustomers = JSON.parse(storedDeleted);
+        // Find deleted customer by ID, day AND timestamp (most specific match)
+        if (deletionTimestamp) {
+          foundCustomer = deletedCustomers.find(c => 
+            c.id === customerId && 
+            c.deletedFrom === day && 
+            c.deletionTimestamp === parseInt(deletionTimestamp)
+          );
+        } else {
+          // Fallback: find by ID and day only
+          foundCustomer = deletedCustomers.find(c => c.id === customerId && c.deletedFrom === day);
+        }
+        
+        if (foundCustomer) {
+          isDeletedCustomer = true;
+          console.log(`✅ Found DELETED customer: ${foundCustomer.name} (ID: ${customerId}) from day ${day} with timestamp ${foundCustomer.deletionTimestamp}`);
+        } else {
+          console.log(`❌ DELETED customer not found for ID: ${customerId}, day: ${day}`);
+        }
+      }
+    } else {
+      // Try to find in ACTIVE customers first
+      const storedCustomers = localStorage.getItem(`customers_${lineId}_${day}`);
+      const customers = storedCustomers ? JSON.parse(storedCustomers) : [];
+      foundCustomer = customers.find(c => c.id === customerId);
+      
+      if (foundCustomer) {
+        console.log(`✅ Found ACTIVE customer: ${foundCustomer.name} (ID: ${customerId}) on day ${day}`);
+      } else {
+        console.log(`❌ ACTIVE customer not found for ID: ${customerId}, day: ${day}`);
+      }
+    }
+    
+    setCustomer(foundCustomer);
+
+    // Load messages - based on whether customer is active or deleted
+    let quickKey, chatKey, renewalKey;
+    
+    if (isDeletedCustomer && foundCustomer && foundCustomer.deletionTimestamp) {
+      // DELETED CUSTOMER: Load from archived keys with timestamp
+      const timestamp = foundCustomer.deletionTimestamp;
+      quickKey = `transactions_deleted_${lineId}_${day}_${customerId}_${timestamp}`;
+      chatKey = `chat_deleted_${lineId}_${day}_${customerId}_${timestamp}`;
+      renewalKey = `renewals_deleted_${lineId}_${day}_${customerId}_${timestamp}`;
+      console.log(`📦 Loading ARCHIVED transactions for deleted customer ${foundCustomer.name}`);
+      console.log('🔑 Keys:', { quickKey, chatKey, renewalKey });
+    } else {
+      // ACTIVE CUSTOMER: Load from regular keys
+      quickKey = `transactions_${lineId}_${day}_${customerId}`;
+      chatKey = `chat_${lineId}_${day}_${customerId}`;
+      renewalKey = `renewals_${lineId}_${day}_${customerId}`;
+      console.log(`📦 Loading ACTIVE transactions for customer ${foundCustomer ? foundCustomer.name : customerId}`);
+      console.log('🔑 Keys:', { quickKey, chatKey, renewalKey });
+    }
+
+    const quickTransactions = localStorage.getItem(quickKey);
+    const chatEntries = localStorage.getItem(chatKey);
+    
+    console.log(`📊 Transaction data availability:`, {
+      hasQuickTrans: !!quickTransactions,
+      hasChatEntries: !!chatEntries,
+      customerType: isDeletedCustomer ? '🔴 DELETED' : '🟢 ACTIVE',
+      customerName: foundCustomer ? foundCustomer.name : '❌ NOT FOUND'
+    });
+
+    const quick = quickTransactions ? JSON.parse(quickTransactions) : [];
+    const chat = chatEntries ? JSON.parse(chatEntries) : [];
+
+    // Sort by date first, then by ID (timestamp) for proper chronological order
+    const allMessages = [...quick, ...chat].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      
+      // First compare by date
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateA - dateB;
+      }
+      
+      // If dates are equal, sort by ID (which is typically a timestamp)
+      // Parse IDs as numbers for proper comparison
+      const idA = parseInt(a.id) || 0;
+      const idB = parseInt(b.id) || 0;
+      return idA - idB;
+    });
+    setMessages(allMessages);
+    
+    console.log(`✅ Loaded ${allMessages.length} messages for ${foundCustomer ? foundCustomer.name : customerId} (${isDeletedCustomer ? 'DELETED' : 'ACTIVE'})`);
+
+    // Load renewals
+    const storedRenewals = localStorage.getItem(renewalKey);
+    const renewalsList = storedRenewals ? JSON.parse(storedRenewals) : [];
+    setRenewals(renewalsList);
+    console.log(`✅ Loaded ${renewalsList.length} renewals`);
+  }, [customerId, day, lineId, isDeletedParam, deletionTimestamp]);
+
+  const handleSendMessage = () => {
+    if (!amount) {
+      alert('Please enter an amount');
+      return;
+    }
+
+    const newMessage = {
+      id: Date.now().toString(),
+      amount: parseFloat(amount),
+      date: new Date().toISOString().split('T')[0],
+      comment: comment,
+      customerName: customer?.name || `Customer ${customerId}` // Store customer name with transaction
+    };
+
+    const chatKey = `chat_${lineId}_${day}_${customerId}`;
+    const stored = localStorage.getItem(chatKey);
+    const existingMessages = stored ? JSON.parse(stored) : [];
+    const updatedMessages = [...existingMessages, newMessage];
+    localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
+
+    setMessages([...messages, newMessage]);
+    
+    // Update BF after adding transaction
+    recalculateBF();
+    
+    setAmount('');
+    setComment('');
+    setIsCommentModalOpen(false);
+  };
+
+  // Helper function to recalculate BF
+  const recalculateBF = () => {
+    // Get line's initial amount
+    const stored = localStorage.getItem('entries');
+    const lines = stored ? JSON.parse(stored) : [];
+    const currentLine = lines.find(l => l.id === lineId);
+    const initialAmount = currentLine?.amount || 0;
+
+    // Calculate total given to ALL customers across ALL days
+    let totalGiven = 0;
+    const allKeys = Object.keys(localStorage);
+    
+    allKeys.forEach(key => {
+      if (key.startsWith(`customers_${lineId}_`)) {
+        try {
+          const storedCustomers = localStorage.getItem(key);
+          if (storedCustomers) {
+            const customersList = JSON.parse(storedCustomers);
+            if (Array.isArray(customersList)) {
+              customersList.forEach(customer => {
+                totalGiven += parseFloat(customer.takenAmount) || 0;
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing customers:', e);
+        }
+      }
+    });
+
+    // Calculate total collected from ALL transactions
+    let totalCollected = 0;
+    allKeys.forEach(key => {
+      if (key.startsWith(`transactions_${lineId}_`)) {
+        try {
+          const storedTrans = localStorage.getItem(key);
+          if (storedTrans) {
+            const transactionsList = JSON.parse(storedTrans);
+            if (Array.isArray(transactionsList)) {
+              transactionsList.forEach(trans => {
+                totalCollected += parseFloat(trans.amount) || 0;
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing transactions:', e);
+        }
+      }
+    });
+
+    // Also include chat transactions
+    allKeys.forEach(key => {
+      if (key.startsWith(`chat_${lineId}_`)) {
+        try {
+          const storedChat = localStorage.getItem(key);
+          if (storedChat) {
+            const chatList = JSON.parse(storedChat);
+            if (Array.isArray(chatList)) {
+              chatList.forEach(chat => {
+                totalCollected += parseFloat(chat.amount) || 0;
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing chat:', e);
+        }
+      }
+    });
+
+    // Calculate total renewals (renewals deduct from BF)
+    let totalRenewals = 0;
+    allKeys.forEach(key => {
+      if (key.startsWith(`renewals_${lineId}_`)) {
+        try {
+          const storedRenewals = localStorage.getItem(key);
+          if (storedRenewals) {
+            const renewalsList = JSON.parse(storedRenewals);
+            if (Array.isArray(renewalsList)) {
+              renewalsList.forEach(renewal => {
+                totalRenewals += parseFloat(renewal.takenAmount) || 0;
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing renewals:', e);
+        }
+      }
+    });
+
+    // BF = Initial Amount - Total Given + Total Collected - Total Renewals
+    const newBfAmount = initialAmount - totalGiven + totalCollected - totalRenewals;
+    
+    // Update localStorage
+    const bfKey = `bf_${lineId}`;
+    localStorage.setItem(bfKey, newBfAmount.toString());
+
+    return newBfAmount;
+  };
+
+  const handleAddComment = () => {
+    if (!amount) {
+      alert('Please enter an amount first');
+      return;
+    }
+    setIsCommentModalOpen(true);
+  };
+
+  const calculateRemaining = () => {
+    if (!customer) return { remainingAmount: 0 };
+    
+    // Calculate total amount owed (initial amount + all renewals)
+    const takenAmount = parseFloat(customer.takenAmount) || 0;
+    const totalRenewalAmount = renewals.reduce((sum, renewal) => sum + (parseFloat(renewal.takenAmount) || 0), 0);
+    const totalOwed = takenAmount + totalRenewalAmount;
+    
+    // Calculate total paid
+    const totalPaid = messages.reduce((sum, msg) => sum + (parseFloat(msg.amount) || 0), 0);
+    
+    // Remaining can be negative (overpayment)
+    const remainingAmount = totalOwed - totalPaid;
+
+    return { remainingAmount };
+  };
+
+  const { remainingAmount } = calculateRemaining();
+
+  if (!customer) return (
+    <div className={`min-h-screen flex items-center justify-center ${
+      theme === 'light' ? 'bg-white text-slate-800' : 'bg-slate-900 text-white'
+    }`}>
+      Loading...
+    </div>
+  );
+
+  return (
+    <div className={`min-h-screen flex flex-col ${
+      theme === 'light' 
+        ? 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50' 
+        : 'bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700'
+    }`}>
+      {/* Floating emojis */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className={`absolute text-4xl animate-pulse ${
+              theme === 'light' ? 'opacity-20' : 'opacity-10'
+            }`}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${3 + Math.random() * 2}s`
+            }}
+          >
+            <IndianRupee className={`w-8 h-8 ${
+              theme === 'light' ? 'text-blue-400' : 'text-white'
+            }`} />
+          </div>
+        ))}
+      </div>
+
+      {/* Header */}
+      <div className={`backdrop-blur-lg border-b p-3 md:p-4 relative z-10 ${
+        theme === 'light'
+          ? 'bg-white/60 border-slate-200'
+          : 'bg-white/10 border-white/20'
+      }`}>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          <div className="flex items-center space-x-2 md:space-x-4 w-full md:w-auto">
+            <Button 
+              onClick={() => navigate(-1)} 
+              variant="ghost" 
+              size="icon"
+              className={`h-10 w-10 rounded-full shadow-md transition-all hover:shadow-lg border-2 ${
+                theme === 'light'
+                  ? 'bg-white hover:bg-slate-50 border-slate-300 hover:border-slate-400 text-slate-700'
+                  : 'bg-white/20 hover:bg-white/30 border-white/30 hover:border-white/50 text-white'
+              }`}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div
+              onClick={() => setIsProfileModalOpen(true)}
+              className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors flex-shrink-0 ${
+                theme === 'light'
+                  ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              {customer.profileImage ? (
+                <img src={customer.profileImage} alt="Profile" className="w-full h-full rounded-full object-cover" />
+              ) : (
+                <User className="w-5 h-5 md:w-6 md:h-6" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className={`text-lg md:text-xl font-bold truncate ${
+                theme === 'light' ? 'text-slate-800' : 'text-white'
+              }`}>{customer.name}</h2>
+              <p className={`text-xs md:text-sm ${
+                theme === 'light' ? 'text-slate-600' : 'text-white/70'
+              }`}>ID: {customer.id}</p>
+            </div>
+          </div>
+          <div className="flex items-center w-full md:w-auto">
+            <div className={`backdrop-blur-sm px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold w-full md:w-auto text-center ${
+              remainingAmount > 0 
+                ? theme === 'light'
+                  ? 'bg-orange-100 border border-orange-300 text-orange-700'
+                  : 'bg-orange-500/30 border border-orange-400/50 text-orange-100'
+                : remainingAmount < 0 
+                  ? theme === 'light'
+                    ? 'bg-emerald-100 border border-emerald-300 text-emerald-700'
+                    : 'bg-emerald-500/30 border border-emerald-400/50 text-emerald-100'
+                  : theme === 'light'
+                    ? 'bg-slate-100 border border-slate-300 text-slate-700'
+                    : 'bg-white/20 text-white'
+            }`}>
+              <span className="font-medium">Remaining:</span> {remainingAmount < 0 ? '-' : ''}₹{Math.abs(remainingAmount).toFixed(2)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Chat Box */}
+      <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-4 relative z-10">
+        {/* Initial Debt Message */}
+        <div className="flex justify-start">
+          <div className={`backdrop-blur-md rounded-2xl rounded-tl-none p-4 max-w-sm shadow-lg ${
+            theme === 'light'
+              ? 'bg-blue-100 border border-blue-200'
+              : 'bg-white/20'
+          }`}>
+            <p className={`font-semibold text-lg ${
+              theme === 'light' ? 'text-blue-900' : 'text-white'
+            }`}>₹{customer.takenAmount}</p>
+            <p className={`text-xs mt-1 ${
+              theme === 'light' ? 'text-blue-700' : 'text-white/70'
+            }`}>{customer.date}</p>
+          </div>
+        </div>
+
+        {/* All Items (Payments and Renewals) in Chronological Order */}
+        {(() => {
+          // Combine messages and renewals with type indicators
+          const allItems = [
+            ...messages.map(msg => ({
+              ...msg,
+              type: 'payment',
+              // Always use date for sorting to ensure consistency
+              timestamp: new Date(msg.date).getTime(),
+              // Keep original ID for key generation
+              originalId: msg.id
+            })),
+            ...renewals.map(renewal => ({
+              ...renewal,
+              type: 'renewal',
+              // Always use date for sorting
+              timestamp: new Date(renewal.renewalDate || renewal.date).getTime(),
+              originalId: renewal.id
+            }))
+          ];
+
+          // Sort by date timestamp (chronological order - oldest first)
+          // If dates are equal, sort by original ID (creation time), then by type
+          allItems.sort((a, b) => {
+            // Primary sort: by date
+            if (a.timestamp !== b.timestamp) {
+              return a.timestamp - b.timestamp; // Ascending: oldest first
+            }
+            
+            // Secondary sort: by original ID if available
+            const idA = (a.originalId && !isNaN(parseInt(a.originalId))) ? parseInt(a.originalId) : 0;
+            const idB = (b.originalId && !isNaN(parseInt(b.originalId))) ? parseInt(b.originalId) : 0;
+            if (idA !== idB && idA !== 0 && idB !== 0) {
+              return idA - idB;
+            }
+            
+            // Tertiary sort: payments before renewals for same date/time
+            return a.type === 'payment' ? -1 : 1;
+          });
+
+          return allItems.map((item, index) => {
+            if (item.type === 'payment') {
+              return (
+                <div key={`payment-${item.originalId || item.id}-${index}`} className="flex justify-end">
+                  <div className={`rounded-2xl rounded-tr-none p-4 max-w-sm shadow-lg ${
+                    theme === 'light'
+                      ? 'bg-gradient-to-br from-emerald-400 to-green-500'
+                      : 'bg-gradient-to-br from-emerald-400 to-cyan-500'
+                  }`}>
+                    <p className="text-white font-bold text-xl">₹{item.amount}</p>
+                    {item.comment && <p className="text-white/90 text-sm mt-2">{item.comment}</p>}
+                    <p className="text-white/70 text-xs mt-2">{item.date}</p>
+                  </div>
+                </div>
+              );
+            } else {
+              return (
+                <div key={`renewal-${item.originalId || item.id}-${index}`} className="flex justify-start">
+                  <div className="bg-gradient-to-br from-orange-400 to-amber-500 backdrop-blur-md rounded-2xl rounded-tl-none p-4 max-w-sm shadow-lg border-2 border-orange-300/50">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <RefreshCw className="w-5 h-5 text-white" />
+                      <p className="text-white font-bold text-sm uppercase tracking-wide">Renewal</p>
+                    </div>
+                    <p className="text-white font-bold text-2xl">₹{parseFloat(item.takenAmount).toFixed(2)}</p>
+                    <p className="text-white/70 text-xs mt-2">{item.date}</p>
+                  </div>
+                </div>
+              );
+            }
+          });
+        })()}
+      </div>
+
+      {/* Input Bar - Enhanced */}
+      <div className={`backdrop-blur-lg border-t p-4 md:p-6 relative z-10 ${
+        theme === 'light'
+          ? 'bg-white/60 border-slate-200'
+          : 'bg-white/10 border-white/20'
+      }`}>
+        <div className="flex items-center space-x-3 md:space-x-4 max-w-4xl mx-auto">
+          <Input
+            type="number"
+            placeholder="Enter amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className={`flex-1 border-2 h-14 md:h-16 px-4 md:px-6 text-lg md:text-xl font-semibold rounded-xl focus:ring-2 transition-all ${
+              theme === 'light'
+                ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-200'
+                : 'bg-white/20 border-white/30 text-white placeholder:text-white/50 focus:border-white/50 focus:ring-white/30'
+            }`}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+          />
+          <Button
+            onClick={handleAddComment}
+            variant="outline"
+            className={`border-2 h-14 md:h-16 w-14 md:w-16 rounded-xl transition-all hover:scale-105 ${
+              theme === 'light'
+                ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400'
+                : 'bg-white/20 border-white/30 text-white hover:bg-white/30 hover:border-white/40'
+            }`}
+          >
+            <FileText className="w-6 h-6 md:w-7 md:h-7" />
+          </Button>
+          <Button
+            onClick={handleSendMessage}
+            className={`h-14 md:h-16 w-14 md:w-16 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 ${
+              theme === 'light'
+                ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 border-emerald-300/50'
+                : 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 border-white/20'
+            }`}
+          >
+            <Send className="w-6 h-6 md:w-7 md:h-7" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Comment Modal */}
+      <Dialog open={isCommentModalOpen} onOpenChange={setIsCommentModalOpen}>
+        <DialogContent className={`shadow-2xl ${
+          theme === 'dark' 
+            ? 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700' 
+            : 'bg-white border-gray-200'
+        } border-2`}>
+          <DialogHeader>
+            <DialogTitle className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Add Comment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <Textarea
+              placeholder="Enter your comment..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              rows={4}
+              className={theme === 'dark' 
+                ? 'bg-slate-700 border-slate-600 text-white placeholder:text-slate-400' 
+                : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'
+              }
+            />
+            <Button onClick={handleSendMessage} className={`w-full text-white ${
+              theme === 'light'
+                ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700'
+                : 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600'
+            }`}>
+              Send with Comment
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Profile Modal - Theme Aware */}
+      <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
+        <DialogContent className={`max-w-sm shadow-2xl ${
+          theme === 'dark' 
+            ? 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700' 
+            : 'bg-white border-gray-200'
+        } border-2`}>
+          <DialogHeader>
+            <DialogTitle className={`text-lg font-bold ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}>Customer Details</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 mt-4">
+            <div className="flex justify-center mb-4">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 to-emerald-500 flex items-center justify-center shadow-lg">
+                {customer.profileImage ? (
+                  <img src={customer.profileImage} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <User className="w-10 h-10 text-white" />
+                )}
+              </div>
+            </div>
+            
+            <div className="space-y-2 text-sm">
+              <div className={`flex justify-between py-1.5 border-b ${
+                theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+              }`}>
+                <span className={`font-medium ${
+                  theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'
+                }`}>Name:</span>
+                <span className={`font-semibold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>{customer.name}</span>
+              </div>
+              
+              <div className={`flex justify-between py-1.5 border-b ${
+                theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+              }`}>
+                <span className={`font-medium ${
+                  theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'
+                }`}>ID:</span>
+                <span className={`font-semibold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>{customer.id}</span>
+              </div>
+              
+              <div className={`flex justify-between py-1.5 border-b ${
+                theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+              }`}>
+                <span className={`font-medium ${
+                  theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'
+                }`}>Village:</span>
+                <span className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>{customer.village || 'N/A'}</span>
+              </div>
+              
+              <div className={`flex justify-between py-1.5 border-b ${
+                theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+              }`}>
+                <span className={`font-medium ${
+                  theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'
+                }`}>Phone:</span>
+                <span className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>{customer.phone || 'N/A'}</span>
+              </div>
+              
+              <div className={`flex justify-between py-1.5 border-b ${
+                theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+              }`}>
+                <span className={`font-medium ${
+                  theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'
+                }`}>Amount:</span>
+                <span className={`font-bold text-base ${
+                  theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+                }`}>₹{customer.takenAmount}</span>
+              </div>
+              
+              <div className={`flex justify-between py-1.5 border-b ${
+                theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+              }`}>
+                <span className={`font-medium ${
+                  theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'
+                }`}>Interest:</span>
+                <span className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>{customer.interest || 'N/A'}</span>
+              </div>
+              
+              <div className={`flex justify-between py-1.5 border-b ${
+                theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+              }`}>
+                <span className={`font-medium ${
+                  theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'
+                }`}>PC:</span>
+                <span className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>{customer.pc || 'N/A'}</span>
+              </div>
+              
+              <div className={`flex justify-between py-1.5 border-b ${
+                theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+              }`}>
+                <span className={`font-medium ${
+                  theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'
+                }`}>Date:</span>
+                <span className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>{customer.date}</span>
+              </div>
+              
+              <div className="flex justify-between py-1.5">
+                <span className={`font-medium ${
+                  theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'
+                }`}>Weeks:</span>
+                <span className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>{customer.weeks}</span>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default CustomerChat;

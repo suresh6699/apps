@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1764404661074",
+    "amount": 2783,
+    "date": "2025-11-15",
+    "comment": "Partial payment",
+    "customerName": "Suresh Babu",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 2369,
+    "date": "2025-11-28",
+    "comment": "Interest payment",
+    "customerName": "Suresh Babu",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 1369,
+    "date": "2025-11-19",
+    "comment": "Partial payment",
+    "customerName": "Suresh Babu",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 1325,
+    "date": "2025-11-11",
+    "comment": "Weekly payment",
+    "customerName": "Suresh Babu",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 1328,
+    "date": "2025-11-14",
+    "comment": "Interest payment",
+    "customerName": "Suresh Babu",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  }
+]

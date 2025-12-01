@@ -1,0 +1,58 @@
+[
+  {
+    "id": "1764404661073",
+    "amount": 1360,
+    "date": "2025-11-02",
+    "comment": "Partial payment",
+    "customerName": "Anil Reddy",
+    "createdAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "1764404661073",
+    "amount": 1045,
+    "date": "2025-11-01",
+    "comment": "Partial payment",
+    "customerName": "Anil Reddy",
+    "createdAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "1764404661073",
+    "amount": 804,
+    "date": "2025-11-07",
+    "comment": "Weekly payment",
+    "customerName": "Anil Reddy",
+    "createdAt": "2025-11-29T08:24:21.073Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 517,
+    "date": "2025-11-20",
+    "comment": "Partial payment",
+    "customerName": "Anil Reddy",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 2112,
+    "date": "2025-11-26",
+    "comment": "Interest payment",
+    "customerName": "Anil Reddy",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 891,
+    "date": "2025-11-11",
+    "comment": "Interest payment",
+    "customerName": "Anil Reddy",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1764404661074",
+    "amount": 1372,
+    "date": "2025-11-29",
+    "comment": "Weekly payment",
+    "customerName": "Anil Reddy",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  }
+]

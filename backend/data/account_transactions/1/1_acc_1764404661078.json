@@ -1,0 +1,66 @@
+[
+  {
+    "id": "1764404661075_0",
+    "name": "Expense",
+    "date": "2025-11-06",
+    "creditAmount": 0,
+    "debitAmount": 1952,
+    "createdAt": "2025-11-29T08:24:21.075Z"
+  },
+  {
+    "id": "1764404661075_1",
+    "name": "Expense",
+    "date": "2025-11-17",
+    "creditAmount": 0,
+    "debitAmount": 1313,
+    "createdAt": "2025-11-29T08:24:21.075Z"
+  },
+  {
+    "id": "1764404661075_2",
+    "name": "Loan Disbursement",
+    "date": "2025-11-16",
+    "creditAmount": 0,
+    "debitAmount": 4936,
+    "createdAt": "2025-11-29T08:24:21.075Z"
+  },
+  {
+    "id": "1764404661075_3",
+    "name": "Expense",
+    "date": "2025-11-16",
+    "creditAmount": 0,
+    "debitAmount": 2341,
+    "createdAt": "2025-11-29T08:24:21.075Z"
+  },
+  {
+    "id": "1764404661075_4",
+    "name": "Collection",
+    "date": "2025-11-07",
+    "creditAmount": 2123,
+    "debitAmount": 0,
+    "createdAt": "2025-11-29T08:24:21.075Z"
+  },
+  {
+    "id": "1764404661075_5",
+    "name": "Withdrawal",
+    "date": "2025-11-29",
+    "creditAmount": 0,
+    "debitAmount": 2862,
+    "createdAt": "2025-11-29T08:24:21.075Z"
+  },
+  {
+    "id": "1764404661075_6",
+    "name": "Interest Received",
+    "date": "2025-11-23",
+    "creditAmount": 9747,
+    "debitAmount": 0,
+    "createdAt": "2025-11-29T08:24:21.075Z"
+  },
+  {
+    "id": "1764404661075_7",
+    "name": "Interest Received",
+    "date": "2025-11-10",
+    "creditAmount": 7808,
+    "debitAmount": 0,
+    "createdAt": "2025-11-29T08:24:21.075Z"
+  }
+]

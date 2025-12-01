@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1764405773908",
+    "amount": 12000,
+    "date": "2025-11-29",
+    "comment": "",
+    "customerName": "suresh",
+    "createdAt": "2025-11-29T08:42:53.908Z"
+  },
+  {
+    "id": "1764406831343",
+    "amount": 5000,
+    "date": "2025-11-29",
+    "comment": "",
+    "customerName": "suresh",
+    "createdAt": "2025-11-29T09:00:31.343Z"
+  }
+]

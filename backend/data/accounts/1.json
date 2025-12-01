@@ -1,0 +1,27 @@
+[
+  {
+    "id": "1_acc_1764404661074",
+    "name": "Bank Account",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1_acc_1764404661075",
+    "name": "Cash Reserve",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1_acc_1764404661076",
+    "name": "Investment Fund",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1_acc_1764404661077",
+    "name": "Emergency Fund",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  },
+  {
+    "id": "1_acc_1764404661078",
+    "name": "Operating Account",
+    "createdAt": "2025-11-29T08:24:21.074Z"
+  }
+]

@@ -1,0 +1,743 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Checkbox } from './ui/checkbox';
+import { Plus, LogOut, Calendar, Edit, MoreVertical, Trash2, User as UserIcon, Sun, Moon } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { mockLines } from '../mock';
+import { initializeMockData } from '../initializeMockData';
+import { useTheme } from '../App';
+
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
+  const [lines, setLines] = useState([]);
+  const [linesBF, setLinesBF] = useState({}); // Store BF for each line
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    type: 'Daily',
+    days: [],
+    amount: ''
+  });
+  const [error, setError] = useState('');
+  const [editingLine, setEditingLine] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [lineToDelete, setLineToDelete] = useState(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+
+  const weekDays = [
+    { short: 'Sun', full: 'Sunday' },
+    { short: 'Mon', full: 'Monday' },
+    { short: 'Tue', full: 'Tuesday' },
+    { short: 'Wed', full: 'Wednesday' },
+    { short: 'Thu', full: 'Thursday' },
+    { short: 'Fri', full: 'Friday' },
+    { short: 'Sat', full: 'Saturday' }
+  ];
+
+  useEffect(() => {
+    const stored = localStorage.getItem('entries');
+    if (stored) {
+      const loadedLines = JSON.parse(stored);
+      setLines(loadedLines);
+      
+      // Load BF for each line
+      const bfMap = {};
+      loadedLines.forEach(line => {
+        const bfKey = `bf_${line.id}`;
+        const storedBf = localStorage.getItem(bfKey);
+        bfMap[line.id] = storedBf ? parseFloat(storedBf) : (line.amount || 0);
+      });
+      setLinesBF(bfMap);
+    } else {
+      // First time initialization with comprehensive mock data
+      initializeMockData();
+      
+      // Load the initialized data
+      const loadedLines = JSON.parse(localStorage.getItem('entries'));
+      setLines(loadedLines);
+      
+      // Load BF for each line
+      const bfMap = {};
+      loadedLines.forEach(line => {
+        const bfKey = `bf_${line.id}`;
+        const storedBf = localStorage.getItem(bfKey);
+        bfMap[line.id] = storedBf ? parseFloat(storedBf) : (line.amount || 0);
+      });
+      setLinesBF(bfMap);
+    }
+  }, []);
+
+  const handleSignOut = () => {
+    localStorage.removeItem('isAuthenticated');
+    navigate('/');
+  };
+
+  const handleDayToggle = (day) => {
+    setFormData(prev => ({
+      ...prev,
+      days: prev.days.includes(day)
+        ? prev.days.filter(d => d !== day)
+        : [...prev.days, day]
+    }));
+  };
+
+  // Helper function to recalculate BF for a line
+  const recalculateBFForLine = (lineId, newInitialAmount) => {
+    // Calculate total given to ALL customers across ALL days
+    let totalGiven = 0;
+    const allKeys = Object.keys(localStorage);
+    
+    allKeys.forEach(key => {
+      if (key.startsWith(`customers_${lineId}_`)) {
+        try {
+          const storedCustomers = localStorage.getItem(key);
+          if (storedCustomers) {
+            const customersList = JSON.parse(storedCustomers);
+            if (Array.isArray(customersList)) {
+              customersList.forEach(customer => {
+                totalGiven += parseFloat(customer.takenAmount) || 0;
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing customers:', e);
+        }
+      }
+    });
+
+    // Calculate total collected from customer transactions ONLY
+    let totalCollected = 0;
+    allKeys.forEach(key => {
+      // Only count customer transactions (pattern: transactions_lineId_day_customerId)
+      const transPattern = new RegExp(`^transactions_${lineId}_\\d{4}-\\d{2}-\\d{2}_`);
+      const chatPattern = new RegExp(`^chat_${lineId}_`);
+      
+      if (transPattern.test(key) || chatPattern.test(key)) {
+        try {
+          const storedTrans = localStorage.getItem(key);
+          if (storedTrans) {
+            const transactionsList = JSON.parse(storedTrans);
+            if (Array.isArray(transactionsList)) {
+              transactionsList.forEach(trans => {
+                totalCollected += parseFloat(trans.amount) || 0;
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing transactions:', e);
+        }
+      }
+    });
+
+    // Calculate total renewals
+    let totalRenewals = 0;
+    allKeys.forEach(key => {
+      if (key.startsWith(`renewals_${lineId}_`)) {
+        try {
+          const storedRenewals = localStorage.getItem(key);
+          if (storedRenewals) {
+            const renewalsList = JSON.parse(storedRenewals);
+            if (Array.isArray(renewalsList)) {
+              renewalsList.forEach(renewal => {
+                totalRenewals += parseFloat(renewal.takenAmount) || 0;
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing renewals:', e);
+        }
+      }
+    });
+
+    // Calculate net from Account page transactions (credit - debit)
+    let accountNet = 0;
+    const accountsKey = `accounts_${lineId}`;
+    const storedAccounts = localStorage.getItem(accountsKey);
+    if (storedAccounts) {
+      try {
+        const accounts = JSON.parse(storedAccounts);
+        if (Array.isArray(accounts)) {
+          accounts.forEach(account => {
+            const accountTransKey = `transactions_${lineId}_${account.id}`;
+            const accountTrans = localStorage.getItem(accountTransKey);
+            if (accountTrans) {
+              const transList = JSON.parse(accountTrans);
+              if (Array.isArray(transList)) {
+                transList.forEach(trans => {
+                  // Account transactions have creditAmount and debitAmount
+                  accountNet += (parseFloat(trans.creditAmount) || 0) - (parseFloat(trans.debitAmount) || 0);
+                });
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Error parsing account transactions:', e);
+      }
+    }
+
+    // BF = Initial Amount - Total Given + Total Collected - Total Renewals + Account Net
+    const newBfAmount = newInitialAmount - totalGiven + totalCollected - totalRenewals + accountNet;
+    
+    // Update localStorage
+    const bfKey = `bf_${lineId}`;
+    localStorage.setItem(bfKey, newBfAmount.toString());
+
+    return newBfAmount;
+  };
+
+  const handleAddLine = () => {
+    if (!formData.name.trim()) {
+      setError('Line name is required');
+      return;
+    }
+    if (formData.days.length === 0) {
+      setError('Please select at least one day');
+      return;
+    }
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      setError('Please enter a valid amount');
+      return;
+    }
+
+    if (editingLine) {
+      // Update existing line
+      const updatedLines = lines.map(line => 
+        line.id === editingLine.id 
+          ? { ...line, name: formData.name, type: formData.type, days: formData.days, amount: parseFloat(formData.amount) }
+          : line
+      );
+      setLines(updatedLines);
+      localStorage.setItem('entries', JSON.stringify(updatedLines));
+
+      // Recalculate BF for this line based on new initial amount
+      const newBfAmount = recalculateBFForLine(editingLine.id, parseFloat(formData.amount));
+      setLinesBF({ ...linesBF, [editingLine.id]: newBfAmount });
+    } else {
+      // Add new line
+      const newLine = {
+        id: Date.now().toString(),
+        name: formData.name,
+        type: formData.type,
+        days: formData.days,
+        amount: parseFloat(formData.amount)
+      };
+
+      const updatedLines = [...lines, newLine];
+      setLines(updatedLines);
+      localStorage.setItem('entries', JSON.stringify(updatedLines));
+
+      // Initialize BF for this line
+      const bfKey = `bf_${newLine.id}`;
+      localStorage.setItem(bfKey, formData.amount);
+      setLinesBF({ ...linesBF, [newLine.id]: parseFloat(formData.amount) });
+    }
+
+    // Reset form
+    setFormData({ name: '', type: 'Daily', days: [], amount: '' });
+    setError('');
+    setIsModalOpen(false);
+    setEditingLine(null);
+  };
+
+  const handleOpenLineModal = (line = null) => {
+    if (line) {
+      setEditingLine(line);
+      setFormData({
+        name: line.name,
+        type: line.type,
+        days: line.days,
+        amount: line.amount ? line.amount.toString() : '0'
+      });
+    } else {
+      setEditingLine(null);
+      setFormData({ name: '', type: 'Daily', days: [], amount: '' });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteLine = (line, e) => {
+    e.stopPropagation();
+    setLineToDelete(line);
+    setDeleteConfirmText('');
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteLine = () => {
+    if (deleteConfirmText.toLowerCase() !== 'delete') {
+      alert('Please type "delete" to confirm');
+      return;
+    }
+    
+    // Remove line from list
+    const updatedLines = lines.filter(l => l.id !== lineToDelete.id);
+    setLines(updatedLines);
+    localStorage.setItem('entries', JSON.stringify(updatedLines));
+    
+    // Remove BF for this line
+    localStorage.removeItem(`bf_${lineToDelete.id}`);
+    localStorage.removeItem(`collected_${lineToDelete.id}`);
+    localStorage.removeItem(`selectedDay_${lineToDelete.id}`);
+    
+    // Remove all days for this line
+    localStorage.removeItem(`days_${lineToDelete.id}`);
+    
+    // Remove all customers and transactions for this line
+    const allKeys = Object.keys(localStorage);
+    allKeys.forEach(key => {
+      if (key.startsWith(`customers_${lineToDelete.id}_`) || 
+          key.startsWith(`transactions_${lineToDelete.id}_`) ||
+          key.startsWith(`chat_${lineToDelete.id}_`)) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Update BF map
+    const newBfMap = { ...linesBF };
+    delete newBfMap[lineToDelete.id];
+    setLinesBF(newBfMap);
+    
+    setIsDeleteModalOpen(false);
+    setLineToDelete(null);
+    setDeleteConfirmText('');
+  };
+
+  return (
+    <div className={`min-h-screen relative overflow-hidden ${
+      theme === 'dark' 
+        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' 
+        : 'bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100'
+    }`}>
+      {/* Video background - only in dark mode */}
+      {theme === 'dark' && (
+        <>
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="fixed inset-0 w-full h-full object-cover opacity-20"
+          >
+            <source src="https://cdn.pixabay.com/video/2020/11/18/56751-481070048_large.mp4" type="video/mp4" />
+          </video>
+          {/* Subtle grid pattern for dark mode */}
+          <div className="fixed inset-0 opacity-[0.03]" style={{
+            backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                             linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)`,
+            backgroundSize: '50px 50px'
+          }}></div>
+        </>
+      )}
+
+      {/* Animated background elements for light mode */}
+      {theme === 'light' && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+          {/* Large flowing gradient orbs with dynamic movement */}
+          <div className="absolute -top-10 -left-10 w-[700px] h-[700px] bg-gradient-to-br from-cyan-400/80 via-blue-400/70 to-cyan-300/60 rounded-full blur-2xl animate-flow-circular"></div>
+          <div className="absolute top-20 -right-20 w-[800px] h-[800px] bg-gradient-to-br from-purple-400/70 via-pink-400/65 to-purple-300/55 rounded-full blur-2xl animate-float-slower"></div>
+          <div className="absolute -bottom-40 left-1/4 w-[750px] h-[750px] bg-gradient-to-br from-emerald-400/75 via-teal-400/70 to-emerald-300/60 rounded-full blur-2xl animate-flow-diagonal"></div>
+          <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] bg-gradient-to-br from-indigo-400/75 via-blue-400/70 to-indigo-300/60 rounded-full blur-2xl animate-float-slow" style={{ animationDelay: '3s' }}></div>
+          
+          {/* Mid-size animated orbs with stronger flowing colors */}
+          <div className="absolute top-1/4 left-1/2 w-[450px] h-[450px] bg-gradient-to-br from-rose-400/70 via-orange-400/65 to-amber-300/55 rounded-full blur-xl animate-drift"></div>
+          <div className="absolute bottom-1/4 right-1/3 w-[500px] h-[500px] bg-gradient-to-br from-violet-400/70 via-fuchsia-400/65 to-pink-300/55 rounded-full blur-xl animate-float-medium" style={{ animationDelay: '4s' }}></div>
+          
+          {/* Additional ambient orbs for more depth and flowing movement */}
+          <div className="absolute top-2/3 left-1/4 w-96 h-96 bg-gradient-to-br from-sky-400/65 via-cyan-300/60 to-blue-300/50 rounded-full blur-xl animate-drift" style={{ animationDelay: '6s' }}></div>
+          <div className="absolute bottom-1/2 right-1/2 w-80 h-80 bg-gradient-to-br from-lime-400/60 via-emerald-400/55 to-teal-300/45 rounded-full blur-xl animate-float-slow" style={{ animationDelay: '2s' }}></div>
+          
+          {/* Strong gradient mesh overlay for vibrant depth */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-blue-300/30 via-transparent to-purple-300/30"></div>
+          <div className="absolute inset-0 bg-gradient-to-bl from-cyan-200/35 via-transparent to-emerald-200/35"></div>
+        </div>
+      )}
+
+      {/* Ambient overlay */}
+      <div className={`fixed inset-0 pointer-events-none ${
+        theme === 'dark' 
+          ? 'bg-gradient-to-br from-slate-900/50 via-transparent to-slate-900/50' 
+          : 'bg-gradient-to-br from-white/40 via-transparent to-slate-50/40'
+      }`}></div>
+
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 md:p-6 gap-4">
+          <div>
+            <h1 className={`text-2xl md:text-3xl font-bold drop-shadow-lg ${
+              theme === 'dark' ? 'text-white' : 'text-slate-900'
+            }`}>
+              Finance Lines
+            </h1>
+            <p className={`mt-1 text-xs md:text-sm ${
+              theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+            }`}>Manage your financial operations</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={toggleTheme}
+              variant="outline"
+              size="sm"
+              className={`backdrop-blur-md transition-all ${
+                theme === 'dark'
+                  ? 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                  : 'bg-slate-900/10 border-slate-900/20 text-slate-900 hover:bg-slate-900/20'
+              }`}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? (
+                <>
+                  <Sun className="w-4 h-4 mr-1 md:mr-2" />
+                  <span className="hidden sm:inline">Light</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-4 h-4 mr-1 md:mr-2" />
+                  <span className="hidden sm:inline">Dark</span>
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              size="sm"
+              className={`backdrop-blur-md transition-all ${
+                theme === 'dark'
+                  ? 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                  : 'bg-slate-900/10 border-slate-900/20 text-slate-900 hover:bg-slate-900/20'
+              }`}
+            >
+              <LogOut className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
+              <span className="sm:hidden">Out</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Lines Grid */}
+        <div className="p-3 md:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+            {lines.map((line) => (
+              <div
+                key={line.id}
+                onClick={() => navigate(`/entry?id=${line.id}`)}
+                className="group relative cursor-pointer"
+              >
+                {/* Subtle hover effect */}
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                
+                <div className={`relative backdrop-blur-lg rounded-xl p-4 border shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 group-hover:border-cyan-500/30 ${
+                  theme === 'dark'
+                    ? 'bg-slate-800/90 border-slate-700/50'
+                    : 'bg-white/90 border-slate-200'
+                }`}>
+                  {/* 3-Dot Menu - Fixed visibility */}
+                  <div className="absolute top-3 right-3 z-10">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <button className={`w-8 h-8 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all border ${
+                          theme === 'dark'
+                            ? 'bg-slate-700/80 text-slate-300 hover:bg-slate-600 hover:text-white border-slate-600'
+                            : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300 hover:text-slate-900 border-slate-300'
+                        }`}>
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent 
+                        className={`border-2 min-w-[130px] p-1.5 shadow-2xl ${
+                          theme === 'dark'
+                            ? 'bg-slate-800 border-slate-600'
+                            : 'bg-white border-slate-300'
+                        }`}
+                        align="end"
+                        sideOffset={5}
+                      >
+                        <DropdownMenuItem
+                          onClick={(e) => { e.stopPropagation(); handleOpenLineModal(line); }}
+                          className={`cursor-pointer px-3 py-2 rounded-md flex items-center gap-2 mb-1 ${
+                            theme === 'dark'
+                              ? 'hover:bg-slate-700 focus:bg-slate-700'
+                              : 'hover:bg-slate-100 focus:bg-slate-100'
+                          }`}
+                          style={{ color: theme === 'dark' ? '#ffffff' : '#1e293b' }}
+                        >
+                          <Edit className="w-4 h-4 flex-shrink-0" style={{ color: theme === 'dark' ? '#ffffff' : '#1e293b' }} />
+                          <span style={{ color: theme === 'dark' ? '#ffffff' : '#1e293b', fontWeight: '600', fontSize: '14px', display: 'inline-block', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Edit</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => handleDeleteLine(line, e)}
+                          className={`cursor-pointer px-3 py-2 rounded-md flex items-center gap-2 ${
+                            theme === 'dark'
+                              ? 'hover:bg-red-950 focus:bg-red-950'
+                              : 'hover:bg-red-50 focus:bg-red-50'
+                          }`}
+                          style={{ color: '#f87171' }}
+                        >
+                          <Trash2 className="w-4 h-4 flex-shrink-0" style={{ color: '#f87171' }} />
+                          <span style={{ color: '#f87171', fontWeight: '600', fontSize: '14px', display: 'inline-block', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  
+                  {/* Card Header */}
+                  <div className="mb-3 pr-8">
+                    <h3 className={`text-lg font-bold group-hover:text-cyan-500 transition-colors ${
+                      theme === 'dark' ? 'text-white' : 'text-slate-900'
+                    }`}>
+                      {line.name}
+                    </h3>
+                  </div>
+
+                  {/* Type Badge */}
+                  <div className="mb-3">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border ${
+                      theme === 'dark'
+                        ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                        : 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                    }`}>
+                      {line.type}
+                    </span>
+                  </div>
+
+                  {/* Balance Forward */}
+                  <div className={`mb-3 p-2.5 rounded-lg border ${
+                    theme === 'dark'
+                      ? 'bg-emerald-500/10 border-emerald-500/20'
+                      : 'bg-emerald-50 border-emerald-200'
+                  }`}>
+                    <p className={`text-xs font-medium mb-0.5 ${
+                      theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
+                    }`}>Balance Forward</p>
+                    <p className={`text-base font-bold ${
+                      theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+                    }`}>₹{linesBF[line.id] ? linesBF[line.id].toFixed(2) : '0.00'}</p>
+                  </div>
+
+                  {/* Days */}
+                  <div className={`flex items-center mb-3 ${
+                    theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
+                  }`}>
+                    <Calendar className={`w-3.5 h-3.5 mr-1.5 ${
+                      theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+                    }`} />
+                    <span className="text-xs font-medium">{line.days.join(', ')}</span>
+                  </div>
+
+                  {/* Account Button */}
+                  <Button 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      navigate(`/account?lineId=${line.id}`); 
+                    }}
+                    className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold shadow-md text-sm py-2 border-0 transition-all duration-300"
+                    size="sm"
+                  >
+                    <UserIcon className="w-3.5 h-3.5 mr-1.5" />
+                    View Accounts
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            {/* Add Line Card */}
+            <Dialog open={isModalOpen} onOpenChange={(open) => {
+              setIsModalOpen(open);
+              if (!open) {
+                setEditingLine(null);
+                setFormData({ name: '', type: 'Daily', days: [], amount: '' });
+                setError('');
+              }
+            }}>
+              <DialogTrigger asChild>
+                <button 
+                  onClick={() => handleOpenLineModal()}
+                  className="group relative cursor-pointer"
+                >
+                  <div className={`relative backdrop-blur-md rounded-xl p-4 border-2 border-dashed hover:border-cyan-500/50 transition-all duration-300 flex items-center justify-center min-h-[230px] ${
+                    theme === 'dark'
+                      ? 'bg-slate-800/50 border-slate-600 hover:bg-slate-800/70'
+                      : 'bg-white/50 border-slate-300 hover:bg-white/70'
+                  }`}>
+                    <div className="text-center">
+                      <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/30 transition-all duration-300 border border-cyan-500/30">
+                        <Plus className="w-7 h-7 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
+                      </div>
+                      <p className={`font-semibold text-base ${
+                        theme === 'dark' ? 'text-white' : 'text-slate-900'
+                      }`}>Add New Line</p>
+                      <p className={`text-xs mt-1 ${
+                        theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
+                      }`}>Create a finance line</p>
+                    </div>
+                  </div>
+                </button>
+              </DialogTrigger>
+              <DialogContent className={`max-w-xl mx-4 md:mx-auto ${
+                theme === 'dark'
+                  ? 'bg-slate-900 border-white/20 text-white'
+                  : 'bg-white border-slate-300 text-slate-900'
+              }`}>
+                <DialogHeader>
+                  <DialogTitle className={`text-2xl ${
+                    theme === 'dark' ? 'text-white' : 'text-slate-900'
+                  }`}>{editingLine ? 'Edit Finance Line' : 'Add New Finance Line'}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <Label htmlFor="lineName" className={theme === 'dark' ? 'text-white/90' : 'text-slate-700'}>Line Name</Label>
+                    <Input
+                      id="lineName"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className={`mt-1 ${
+                        theme === 'dark'
+                          ? 'bg-white/10 border-white/20 text-white'
+                          : 'bg-slate-50 border-slate-300 text-slate-900'
+                      }`}
+                      placeholder="Enter line name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="amount" className={theme === 'dark' ? 'text-white/90' : 'text-slate-700'}>Amount (BF - Balance Forward)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      value={formData.amount}
+                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                      className={`mt-1 ${
+                        theme === 'dark'
+                          ? 'bg-white/10 border-white/20 text-white placeholder:text-slate-400'
+                          : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-500'
+                      }`}
+                      placeholder="Enter initial amount"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className={theme === 'dark' ? 'text-white/90' : 'text-slate-700'}>Line Type</Label>
+                    <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+                      <SelectTrigger className={`mt-1 ${
+                        theme === 'dark'
+                          ? 'bg-white/10 border-white/20 text-white'
+                          : 'bg-slate-50 border-slate-300 text-slate-900'
+                      }`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className={
+                        theme === 'dark'
+                          ? 'bg-slate-800 border-slate-700 text-white'
+                          : 'bg-white border-slate-300 text-slate-900'
+                      }>
+                        <SelectItem value="Daily">Daily</SelectItem>
+                        <SelectItem value="Weekly">Weekly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className={`mb-3 block ${theme === 'dark' ? 'text-white/90' : 'text-slate-700'}`}>Days</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {weekDays.map((day) => (
+                        <div key={day.short} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={day.short}
+                            checked={formData.days.includes(day.short)}
+                            onCheckedChange={() => handleDayToggle(day.short)}
+                            className={theme === 'dark' ? 'border-white/40' : 'border-slate-400'}
+                          />
+                          <Label htmlFor={day.short} className={`text-sm cursor-pointer ${
+                            theme === 'dark' ? 'text-white' : 'text-slate-900'
+                          }`}>{day.short}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {error && <p className={`text-sm py-2 px-3 rounded ${
+                    theme === 'dark' 
+                      ? 'text-red-300 bg-red-500/20' 
+                      : 'text-red-700 bg-red-100 border border-red-300'
+                  }`}>{error}</p>}
+
+                  <Button
+                    onClick={handleAddLine}
+                    className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600"
+                  >
+                    {editingLine ? 'Update Line' : 'Add Line'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Line Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className={
+          theme === 'dark'
+            ? 'bg-slate-900 border-white/20 text-white'
+            : 'bg-white border-slate-300'
+        }>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Confirm Delete Line</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <p className={theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}>
+              Are you sure you want to delete <strong>"{lineToDelete?.name}"</strong>? This will also delete all days, customers, and transactions for this line.
+            </p>
+            <div>
+              <Label className={theme === 'dark' ? 'text-white/90' : 'text-slate-700'}>Type "delete" to confirm</Label>
+              <Input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type delete"
+                className={`mt-1 ${
+                  theme === 'dark'
+                    ? 'bg-white/10 border-white/20 text-white placeholder:text-slate-400'
+                    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-500'
+                }`}
+              />
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                onClick={confirmDeleteLine} 
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                disabled={deleteConfirmText.toLowerCase() !== 'delete'}
+              >
+                Delete
+              </Button>
+              <Button 
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setLineToDelete(null);
+                  setDeleteConfirmText('');
+                }}
+                variant="outline"
+                className={`flex-1 ${
+                  theme === 'dark'
+                    ? 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                    : 'bg-slate-100 border-slate-300 text-slate-900 hover:bg-slate-200'
+                }`}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Dashboard;
