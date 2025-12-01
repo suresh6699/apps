@@ -1211,9 +1211,9 @@ class CustomerController {
         const timestamp = customer.deletionTimestamp;
         const deletedInternalId = customer.internalId || customer.id;
         
-        // STEP 8 FIX: Load archived renewals using internalId (NO timestamp suffix)
+        // STEP 8 FIX: Load archived renewals using correct folder name (suffix pattern)
         const archivedRenewals = fileManager.readJSON(
-          `deleted_renewals/${lineId}/${day}/${deletedInternalId}.json`
+          `renewals_deleted/${lineId}/${day}/${deletedInternalId}.json`
         ) || [];
         
         // Calculate display amount: If renewals exist, use last renewal amount, otherwise use initial loan
