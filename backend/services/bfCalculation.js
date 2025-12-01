@@ -96,11 +96,14 @@ class BFCalculationService {
         });
       });
 
-      // STEP 7: Simple BF calculation - ONLY active customers
+      // STEP 8: Simple BF calculation - ONLY active customers
       // NO settlement adjustment, NO deleted customer processing
+      // Transactions from deleted customers are NOT counted
       const bfAmount = initialAmount - totalNetGiven + totalCollected + accountNet;
 
-      console.log('✅ STEP 7 BF Calculation (Simplified):', {
+      console.log('✅ STEP 8 BF Calculation (Active Customers Only):', {
+        lineId,
+        activeCustomers: activeInternalIds.size,
         initialAmount,
         totalNetGiven,
         totalCollected,
