@@ -268,12 +268,13 @@ class PDFController {
           if (dc.deletedFrom === day && dc.deletionTimestamp) {
             const timestamp = dc.deletionTimestamp;
             
-            // Load archived transactions
+            // STEP 8 FIX: Load archived transactions using internalId (no timestamp suffix)
+            const deletedInternalId = dc.internalId || dc.id;
             const archivedTrans = fileManager.readJSON(
-              `transactions_deleted/${lineId}/${day}/${dc.id}_${timestamp}.json`
+              `transactions_deleted/${lineId}/${day}/${deletedInternalId}.json`
             ) || [];
             const archivedChat = fileManager.readJSON(
-              `chat_deleted/${lineId}/${day}/${dc.id}_${timestamp}.json`
+              `chat_deleted/${lineId}/${day}/${deletedInternalId}.json`
             ) || [];
             
             [...archivedTrans, ...archivedChat].forEach(trans => {
