@@ -1498,11 +1498,11 @@ class CustomerController {
         const restoredInternalId = restoredFromDeleted.internalId || restoredFromDeleted.id;
         
         const archivedTransactions = fileManager.readJSON(
-          `deleted_transactions/${lineId}/${day}/${restoredInternalId}.json`
+          `transactions_deleted/${lineId}/${day}/${restoredInternalId}.json`
         ) || [];
         // STEP 8 FIX: Chat folder NO LONGER used for payments (only comments)
         const archivedRenewals = fileManager.readJSON(
-          `deleted_renewals/${lineId}/${day}/${restoredInternalId}.json`
+          `renewals_deleted/${lineId}/${day}/${restoredInternalId}.json`
         ) || [];
         
         // Mark archived items
