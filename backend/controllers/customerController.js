@@ -207,14 +207,14 @@ class CustomerController {
       const deletionTimestamp = customer.deletionTimestamp;
       const deletedInternalId = customer.internalId || customer.id;
       
-      // STEP 8 FIX: Load archived transactions using internalId (NO timestamp suffix)
+      // STEP 8 FIX: Load archived transactions using correct folder names (suffix pattern)
       const archivedTransactions = fileManager.readJSON(
-        `deleted_transactions/${lineId}/${day}/${deletedInternalId}.json`
+        `transactions_deleted/${lineId}/${day}/${deletedInternalId}.json`
       ) || [];
       // STEP 8 FIX: Chat folder NO LONGER used for payments (only text messages)
       // All payments (including chat payments) are in transactions
       const archivedRenewals = fileManager.readJSON(
-        `deleted_renewals/${lineId}/${day}/${deletedInternalId}.json`
+        `renewals_deleted/${lineId}/${day}/${deletedInternalId}.json`
       ) || [];
       
       // Calculate totalOwed: If renewals exist, use last renewal amount, otherwise use initial loan
