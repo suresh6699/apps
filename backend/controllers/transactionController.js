@@ -29,9 +29,11 @@ class TransactionController {
       
       // If customer was restored, include archived transactions for HISTORY
       // Mark them so they're not counted in balance if previous loan was settled
-      if (restoredFromDeleted && restoredFromDeleted.deletionTimestamp) {
+      // STEP 8 FIX: Use internalId without timestamp suffix
+      if (restoredFromDeleted && restoredFromDeleted.internalId) {
+        const restoredInternalId = restoredFromDeleted.internalId || restoredFromDeleted.id;
         const archivedTransactions = fileManager.readJSON(
-          `transactions_deleted/${lineId}/${day}/${restoredFromDeleted.id}_${restoredFromDeleted.deletionTimestamp}.json`
+          `transactions_deleted/${lineId}/${day}/${restoredInternalId}.json`
         ) || [];
         
         // Mark archived transactions with flag to indicate they're from a closed account
