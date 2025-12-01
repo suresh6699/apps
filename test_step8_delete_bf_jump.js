@@ -12,6 +12,7 @@
 const http = require('http');
 
 const API_BASE = 'http://localhost:8001/api';
+let AUTH_TOKEN = null;
 
 // Helper to make HTTP requests
 function makeRequest(method, path, body = null) {
@@ -23,6 +24,11 @@ function makeRequest(method, path, body = null) {
         'Content-Type': 'application/json'
       }
     };
+    
+    // Add auth token if available
+    if (AUTH_TOKEN) {
+      options.headers['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+    }
 
     const req = http.request(url, options, (res) => {
       let data = '';
