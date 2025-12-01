@@ -1290,8 +1290,8 @@ class CustomerController {
       
       const deletedInternalId = deletedCustomer.internalId || deletedCustomer.id;
       
-      // STEP 8 FIX: Load archived transactions using internalId (NO timestamp suffix)
-      const archivedTransactions = fileManager.readJSON(`deleted_transactions/${lineId}/${day}/${deletedInternalId}.json`) || [];
+      // STEP 8 FIX: Load archived transactions using correct folder name (suffix pattern)
+      const archivedTransactions = fileManager.readJSON(`transactions_deleted/${lineId}/${day}/${deletedInternalId}.json`) || [];
       
       res.json({ transactions: archivedTransactions });
     } catch (error) {
