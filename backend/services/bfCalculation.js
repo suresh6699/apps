@@ -31,6 +31,11 @@ class BFCalculationService {
       // NET = takenAmount - interest - pc (actual cash going out)
       let totalNetGiven = 0;
       const days = fileManager.listFiles(`customers/${lineId}`);
+      
+      // STEP 8 FIX: Build a set of active customer internalIds
+      // We'll use this to only count transactions from ACTIVE customers
+      const activeInternalIds = new Set();
+      
       days.forEach(dayFile => {
         const customers = fileManager.readJSON(`customers/${lineId}/${dayFile}`) || [];
         customers.forEach(customer => {
@@ -39,12 +44,18 @@ class BFCalculationService {
           const pc = parseFloat(customer.pc) || 0;
           const netGiven = takenAmount - interest - pc;
           totalNetGiven += netGiven;
+          
+          // STEP 8 FIX: Track active customer internalIds
+          const internalId = customer.internalId || customer.id;
+          activeInternalIds.add(internalId);
         });
       });
 
-      // Calculate total collected from ACTIVE customer transactions
-      // STEP 7: NO archived data, NO timestamp filtering, NO migration checks
-      // Just sum all payments from active transaction files
+      console.log(`📊 STEP 8: Found ${activeInternalIds.size} active customers for line ${lineId}`);
+
+      // STEP 8 FIX: Calculate total collected from ACTIVE customer transactions ONLY
+      // This prevents BF from jumping when customers are deleted
+      // Deleted customer transactions remain in files but are NOT counted
       let totalCollected = 0;
       
       // Transactions
@@ -52,15 +63,23 @@ class BFCalculationService {
       transDays.forEach(dayFolder => {
         const transFiles = fileManager.listFiles(`transactions/${lineId}/${dayFolder}`);
         transFiles.forEach(file => {
-          const transactions = fileManager.readJSON(`transactions/${lineId}/${dayFolder}/${file}`) || [];
-          transactions.forEach(trans => {
-            // Count all payments (including those with type: 'payment')
-            if (trans.type === 'payment' || trans.amount) {
-              totalCollected += parseFloat(trans.amount) || 0;
-            }
-          });
+          // Extract internalId from filename (e.g., "123_abc.json" → "123_abc")
+          const internalId = file.replace('.json', '');
+          
+          // STEP 8 FIX: Only count transactions if customer is ACTIVE
+          if (activeInternalIds.has(internalId)) {
+            const transactions = fileManager.readJSON(`transactions/${lineId}/${dayFolder}/${file}`) || [];
+            transactions.forEach(trans => {
+              // Count all payments (including those with type: 'payment')
+              if (trans.type === 'payment' || trans.amount) {
+                totalCollected += parseFloat(trans.amount) || 0;
+              }
+            });
+          }
         });
       });
+
+      console.log(`💰 STEP 8: Counted transactions from ${activeInternalIds.size} active customers only`);
 
       // FIXED: Chat folder NO LONGER used for BF calculation
       // Chat payments are now saved directly to transactions/ folder (STEP 6)
